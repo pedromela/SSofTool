@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2041
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSofTool", "SSofTool\SSofTool.csproj", "{BA80BB93-31A0-4F8C-BB06-18C7A03D07E9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BA80BB93-31A0-4F8C-BB06-18C7A03D07E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA80BB93-31A0-4F8C-BB06-18C7A03D07E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA80BB93-31A0-4F8C-BB06-18C7A03D07E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA80BB93-31A0-4F8C-BB06-18C7A03D07E9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {64FB7E6D-CD38-41EB-ABC2-33C407A178EF}
+	EndGlobalSection
+EndGlobal
