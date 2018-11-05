@@ -59,6 +59,11 @@ namespace SSofTool
 			}
 		}
 
+		public List<Instruction> GetInstructions()
+		{
+			return instructions;
+		}
+
 		public string Render()
 		{
 			string res = "";

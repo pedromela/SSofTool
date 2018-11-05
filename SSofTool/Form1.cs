@@ -65,10 +65,15 @@ namespace SSofTool
 
 		private void LoadStack()
 		{
+			object[] pars = { "av", "ac" };
+			Dictionary<int, char> stack = manager.Stack();
+			foreach(var item in stack)
+			{
+				pars[0] = item.Key;
+				pars[1] = item.Value;
+				Stack.Rows.Add(pars);
 
-			object[] pars = {"av", "ac" };
-			Stack.Rows.Add(pars);
-
+			}
 		}
 
 		private void Clear()
@@ -91,15 +96,4 @@ namespace SSofTool
 			LoadStack();
 		}
 	}
-
-	public class Item
-	{
-		public int millis;
-		public string stamp;
-		public DateTime datetime;
-		public string light;
-		public float temp;
-		public float vcc;
-	}
-
 }
