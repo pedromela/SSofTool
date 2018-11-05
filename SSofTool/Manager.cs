@@ -62,12 +62,19 @@ namespace SSofTool
 
 							break;
 						case "push":
-							int len = instr.args.Length;
-							if(len == 1)
+							int l = instr.args.Length;
+							if(l == 1)
 							{
 								string value = instr.args[0].ToString();
 								if (value.Equals("rbp"))
 								{
+									int len = instr.address.Length;
+									while (len != 8)
+									{
+										stack.Add(pointer, '0');
+										pointer++;
+										len++;
+									}
 									foreach (char c in instr.address)
 									{
 										stack.Add(pointer,c);
