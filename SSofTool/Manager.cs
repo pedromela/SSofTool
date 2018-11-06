@@ -52,6 +52,8 @@ namespace SSofTool
 		{
 			Dictionary<int, char> stack = new Dictionary<int, char>();
 			int pointer = 0;
+			Stack<char> s = new Stack<char>();
+			//Stack<string> frames
 			foreach (Function f in functions)
 			{
 				foreach (Instruction instr in f.GetInstructions())
@@ -59,9 +61,24 @@ namespace SSofTool
 					switch (instr.op)
 					{
 						case "sub":
-
+							if(instr.args.Length == 2)
+							{
+								if (instr.args[0].ToString().Equals("rsp"))
+								{
+									Console.WriteLine("RSP: " + instr.args[1].ToString());
+									int intValue = Convert.ToInt32(instr.args[1].ToString(), 16);
+									for(int i = 0; i < intValue; i++)
+									{
+										//s.Push('0');
+										stack.Add(pointer, '0');
+										pointer++;
+									}
+									Console.WriteLine("RSP: " + intValue);
+								}
+							}
 							break;
 						case "push":
+							
 							int l = instr.args.Length;
 							if(l == 1)
 							{
@@ -71,12 +88,14 @@ namespace SSofTool
 									int len = instr.address.Length;
 									while (len != 8)
 									{
+										s.Push('0');
 										stack.Add(pointer, '0');
 										pointer++;
 										len++;
 									}
 									foreach (char c in instr.address)
 									{
+										s.Push(c);
 										stack.Add(pointer,c);
 										pointer++;
 									}
@@ -84,7 +103,17 @@ namespace SSofTool
 							}
 							break;
 						case "mov":
+							if (instr.args.Length > 1)
+							{
+								Console.WriteLine("{0} {1}, {2}", instr.op, instr.args[0], instr.args[1]);
 
+								string arg1 = instr.args[1].ToString();
+								string[] tokens = arg1.Split(' ');
+								foreach(string str in tokens)
+								{
+									//Console.WriteLine(str);
+								}
+							}
 							break;
 						case "lea":
 

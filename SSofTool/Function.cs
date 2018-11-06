@@ -51,6 +51,7 @@ namespace SSofTool
 					foreach (JToken arg in args)
 					{
 						Console.WriteLine("args {0}", arg);
+						if (arg.ToString().First() == '#') continue;
 						instr.args[j++] = arg;
 					}
 				}
@@ -74,6 +75,7 @@ namespace SSofTool
 				{
 					foreach (var arg in instr.args)
 					{
+						//if (arg.ToString().First() == '#') continue;
 						res += " " + arg;
 					}
 				}
