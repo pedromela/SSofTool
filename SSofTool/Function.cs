@@ -65,7 +65,17 @@ namespace SSofTool
 			return instructions;
 		}
 
-		public string Render()
+        public Instruction GetInstruction(int i)
+        {
+            return instructions[i];
+        }
+
+        public List<Variable> getVariables()
+        {
+            return variables;
+        }
+
+        public string Render()
 		{
 			string res = "";
 			foreach(Instruction instr in instructions)

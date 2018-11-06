@@ -136,8 +136,66 @@ namespace SSofTool
 
 							break;
 						case "call":
+                            if (instr.args.Length < 1)
+                            {
+                                Console.WriteLine("This call makes no sense");
+                            }
+                            Console.WriteLine("{0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
 
-							break;
+
+                            switch (instr.args[0].ToString())
+                            {
+                                //case for dangerous function calls
+                                case "<fgets@plt>":
+                                    Console.WriteLine("{0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
+
+                                    //fgets is dangerous, there's 3 arguments  that are put in registers before calling an fgets
+                                    //the buffer (LEA'd into register)
+                                    //the buff_len (mov'd into register)
+                                    //the stdinstream (This is accessed via mov [rip-"code"])
+                                    string buffstart;
+                                    string bufflen;
+                                    string[] split;
+                                    string rip;
+                                    string register;
+
+                                    int instrcounter = instr.pos - 4;
+                                    Instruction instrstdin = f.GetInstruction(instrcounter);
+
+                                    rip = instrstdin.args[1].ToString();
+                                    split = rip.Split(' ');
+                                    if (split[2].Equals("[rip+0x200b03]")) //ponteiro po stdin q vai ser passado ao fgets, uma call ao fgets faz smpr isto nesta ordem
+                                    {
+                                        Console.WriteLine("{0} {1} {2}", instrstdin.pos, instrstdin.args[0], instrstdin.args[1]);
+                                        instrcounter++;
+                                        Instruction instrlea = f.GetInstruction(instrcounter);
+                                        if (instrlea.op.Equals("lea"))
+                                        {
+                                            register = instrlea.args[0].ToString();
+                                            buffstart = instrlea.args[1].ToString(); // ponteiro pa variavel buffer na stack é guardado num registo q vai ser passado ao fgets
+                                            instrcounter++;
+                                            Instruction instrbufflen = f.GetInstruction(instrcounter);
+                                            if (instrbufflen.op.Equals("mov") && instrbufflen.args[0].ToString().Equals("esi"))
+                                            {
+                                                bufflen = instrbufflen.args[1].ToString(); // o valor do buff_len do fgets e posto num registo
+                                                instrcounter++;
+                                                Instruction instrmov = f.GetInstruction(instrcounter++);
+                                                if (instrmov.op.Equals("mov") && instrmov.args[1].ToString().Equals(register)) // o ponteiro para o buffer que foi colocado num registo é posto noutro registo conhecido ao fgets
+                                                {
+                                                    Console.WriteLine("fgets chamou, guardámos o bufflen, agr vamos ver se pode existir acesso outofbound, ou um overflow numa variável da frame");
+                                                    List<Variable> variablelist = f.getVariables();
+
+
+                                                }
+                                            }
+                                        }
+                                    }
+                                    break;
+
+                            }
+                            break;
+
+                            
 						case "leave":
 
 							break;
