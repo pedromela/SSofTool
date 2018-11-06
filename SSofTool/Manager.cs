@@ -107,11 +107,28 @@ namespace SSofTool
 							{
 								Console.WriteLine("{0} {1}, {2}", instr.op, instr.args[0], instr.args[1]);
 
-								string arg1 = instr.args[1].ToString();
+								string arg1 = instr.args[0].ToString();
 								string[] tokens = arg1.Split(' ');
+								if(tokens.Length == 3)
+								{
+									if ((tokens[0].Substring(1) + tokens[1]).Equals("WORDPTR"))
+									{
+										string x = arg1.Substring(10);
+										if (x.Contains("rbp"))
+										{
+											x = x.Trim('[', ']');
+											string[] args = x.Split('-');
+											if(args.Length == 2)
+											{
+												int intValue = Convert.ToInt32(args[1], 16);
+												Console.WriteLine("WORD PTR " + intValue);
+											}
+										}
+									}
+								}
 								foreach(string str in tokens)
 								{
-									//Console.WriteLine(str);
+									Console.WriteLine(str);
 								}
 							}
 							break;
