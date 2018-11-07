@@ -10,12 +10,29 @@ namespace SSofTool
 	{
 		private List<Function> functions;
 		private Dictionary<string, Function> functions_dict;
-
+        private List<Register> registers;
 		public Manager()
 		{
 			functions = new List<Function>();
 			functions_dict = new Dictionary<string, Function>();
-		}
+            registers = new List<Register>();
+            registers.Add(new Register("rax", "0x0"));
+            registers.Add(new Register("rbx", "0x0"));
+            registers.Add(new Register("rcx", "0x0"));
+            registers.Add(new Register("rdx", "0x0"));
+            registers.Add(new Register("rsi", "0x0"));
+            registers.Add(new Register("r8", "0x0"));
+            registers.Add(new Register("r9", "0x0"));
+            registers.Add(new Register("r10", "0x0"));
+            registers.Add(new Register("r11", "0x0"));
+            registers.Add(new Register("r12", "0x0"));
+            registers.Add(new Register("r13", "0x0"));
+            registers.Add(new Register("r14", "0x0"));
+            registers.Add(new Register("r15", "0x0"));
+            registers.Add(new Register("rbp", "0xFFFFFFFF"));
+            registers.Add(new Register("rsp", "0xFFFFFFFF"));
+            registers.Add(new Register("esi", "0x0"));
+        }
 
 		public void AddFunction(string name, Function f)
 		{
@@ -219,4 +236,27 @@ namespace SSofTool
 			return stack;
 		}
 	}
+    public class Register
+    {
+        private string name;
+        private string value;
+
+        public Register(string name, string value)
+        {
+            this.name = name;
+            this.value = value;
+        }
+
+        public string Name
+        {
+            get { return this.name; }
+            set { this.name = value; }
+        }
+
+        public string Value
+        {
+            get { return this.value; }
+            set { this.value = value; }
+        }
+    }
 }
