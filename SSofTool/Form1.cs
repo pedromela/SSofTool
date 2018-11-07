@@ -29,7 +29,7 @@ namespace SSofTool
 		public void LoadJson(string file)
 		{
 			
-			using (StreamReader r = new StreamReader("public_tests/test01.json"))
+			using (StreamReader r = new StreamReader("public_tests/test02.json"))
 			{
 				string json = r.ReadToEnd();
 				if(string.IsNullOrEmpty(json))

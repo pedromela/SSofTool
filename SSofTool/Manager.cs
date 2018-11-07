@@ -53,6 +53,7 @@ namespace SSofTool
 			Dictionary<int, char> stack = new Dictionary<int, char>();
 			int pointer = 0;
 			Stack<char> s = new Stack<char>();
+			Stack<Frame> frames = new Stack<Frame>();
 			//Stack<string> frames
 			foreach (Function f in functions)
 			{
@@ -65,7 +66,7 @@ namespace SSofTool
 							{
 								if (instr.args[0].ToString().Equals("rsp"))
 								{
-									Console.WriteLine("RSP: " + instr.args[1].ToString());
+									//Console.WriteLine("RSP: " + instr.args[1].ToString());
 									int intValue = Convert.ToInt32(instr.args[1].ToString(), 16);
 									for(int i = 0; i < intValue; i++)
 									{
@@ -73,6 +74,8 @@ namespace SSofTool
 										stack.Add(pointer, '0');
 										pointer++;
 									}
+									Frame frame = new Frame(pointer, pointer + intValue);
+									frames.Push(frame);
 									Console.WriteLine("RSP: " + intValue);
 								}
 							}
@@ -105,7 +108,7 @@ namespace SSofTool
 						case "mov":
 							if (instr.args.Length > 1)
 							{
-								Console.WriteLine("{0} {1}, {2}", instr.op, instr.args[0], instr.args[1]);
+								//Console.WriteLine("{0} {1}, {2}", instr.op, instr.args[0], instr.args[1]);
 
 								string arg1 = instr.args[0].ToString();
 								string[] tokens = arg1.Split(' ');
@@ -116,20 +119,32 @@ namespace SSofTool
 										string x = arg1.Substring(10);
 										if (x.Contains("rbp"))
 										{
+											
 											x = x.Trim('[', ']');
 											string[] args = x.Split('-');
 											if(args.Length == 2)
 											{
 												int intValue = Convert.ToInt32(args[1], 16);
-												Console.WriteLine("WORD PTR " + intValue);
+												if (!string.IsNullOrEmpty(instr.args[1].ToString()))
+												{
+													foreach (char c in instr.args[1].ToString().Substring(2))
+													{
+														Frame frame = frames.First();
+														for(int i = frame.start; i < frame.end; i++)
+														{
+															stack[i] = c;
+														}
+													}
+												}
+												//Console.WriteLine("WORD PTR " + intValue);
 											}
 										}
 									}
 								}
-								foreach(string str in tokens)
-								{
-									Console.WriteLine(str);
-								}
+								//foreach(string str in tokens)
+								//{
+								//	Console.WriteLine(str);
+								//}
 							}
 							break;
 						case "lea":
@@ -158,13 +173,13 @@ namespace SSofTool
                                     string[] split;
                                     string rip;
                                     string register;
-
+									Console.WriteLine("CALL:");
                                     int instrcounter = instr.pos - 4;
                                     Instruction instrstdin = f.GetInstruction(instrcounter);
 
                                     rip = instrstdin.args[1].ToString();
                                     split = rip.Split(' ');
-                                    if (split[2].Equals("[rip+0x200b03]")) //ponteiro po stdin q vai ser passado ao fgets, uma call ao fgets faz smpr isto nesta ordem
+                                    if (split[2].Equals("[rip+0x200b03]")) //ponteiro p stdin q vai ser passado ao fgets, uma call ao fgets faz smpr isto nesta ordem
                                     {
                                         Console.WriteLine("{0} {1} {2}", instrstdin.pos, instrstdin.args[0], instrstdin.args[1]);
                                         instrcounter++;
