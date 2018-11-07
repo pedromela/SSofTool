@@ -16,10 +16,18 @@ namespace SSofTool
 	public partial class Form1 : Form
 	{
 		private Manager manager;
+		private string filename = null;
 		public Form1()
 		{
 			InitializeComponent();
 			manager = new Manager();
+		}
+
+		public Form1(string input)
+		{
+			InitializeComponent();
+			manager = new Manager();
+			filename = input;
 		}
 
 		private void Init() {
@@ -29,29 +37,29 @@ namespace SSofTool
 		public void LoadJson(string file)
 		{
 			
-			using (StreamReader r = new StreamReader("public_tests/test02.json"))
+			using (StreamReader r = new StreamReader("public_tests/" + file))
 			{
 				string json = r.ReadToEnd();
 				if(string.IsNullOrEmpty(json))
 				{
 					Console.WriteLine("Couldn't load Json");
 				}
-				Console.WriteLine("=========================================================================");
-				Console.WriteLine("Json :");
-				Console.WriteLine(json);
-				Console.WriteLine("=========================================================================");
+				//Console.WriteLine("=========================================================================");
+				//Console.WriteLine("Json :");
+				//Console.WriteLine(json);
+				//Console.WriteLine("=========================================================================");
 
 				dynamic array = JsonConvert.DeserializeObject(json);
 				dynamic aux_array;
 				foreach (dynamic item in array)
 				{
-					Console.WriteLine("=========================================================================");
-					Console.WriteLine("Item: ");
-					Console.WriteLine(item.Name);
+					//Console.WriteLine("=========================================================================");
+					//Console.WriteLine("Item: ");
+					//Console.WriteLine(item.Name);
 					Newtonsoft.Json.Linq.JObject jObject = (Newtonsoft.Json.Linq.JObject)item.Value;
 					Function f = new Function(jObject);
 					manager.AddFunction(item.Name, f);
-					Console.WriteLine("=========================================================================");
+					//Console.WriteLine("=========================================================================");
 
 				}
 			}
@@ -90,8 +98,20 @@ namespace SSofTool
 			}
 
 			string file = File.Text;
-
-			LoadJson("test01.json");
+			if(filename != null)
+			{
+				LoadJson(filename);
+			} else
+			{
+				if (string.IsNullOrEmpty(file))
+				{
+					LoadJson("test01.json");
+				}
+				else
+				{
+					LoadJson(file);
+				}
+			}
 			LoadCode();
 			LoadStack();
 		}

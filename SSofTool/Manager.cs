@@ -11,6 +11,7 @@ namespace SSofTool
 		private List<Function> functions;
 		private Dictionary<string, Function> functions_dict;
         private List<Register> registers;
+
 		public Manager()
 		{
 			functions = new List<Function>();

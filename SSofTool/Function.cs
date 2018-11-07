@@ -51,8 +51,15 @@ namespace SSofTool
 					foreach (JToken arg in args)
 					{
 						Console.WriteLine("args {0}", arg);
-						if (arg.ToString().First() == '#') continue;
-						instr.args[j++] = arg;
+						if (arg.ToString().First() == '#')
+						{
+							instr.args[args.Count() - 1] = arg;
+							continue;
+						}
+						else
+						{
+							instr.args[j++] = arg;
+						}
 					}
 				}
 				instr.address = instrs[i]["address"].ToString();
