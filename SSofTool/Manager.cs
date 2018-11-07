@@ -87,15 +87,18 @@ namespace SSofTool
 
 									//Console.WriteLine("RSP: " + instr.args[1].ToString());
 									int intValue = Convert.ToInt32(instr.args[1].ToString(), 16);
-									Frame frame = new Frame(pointer, pointer + intValue);
-									frames.Push(frame);
+                                    Frame frame = frames.First();
+                                    frame.end = pointer + intValue;
+									//Frame frame = new Frame(pointer, pointer + intValue);
+									//frames.Push(frame);
 									for (int i = 0; i < intValue; i++)
 									{
 										//s.Push('0');
 										stack.Add(pointer, '0');
 										pointer++;
 									}
-									Console.WriteLine("limites: {0} - {1} ", pointer, pointer + intValue);
+									Console.WriteLine("limites: {0} - {1} ", frame.start, frame.end);
+                                    Console.WriteLine(pointer.ToString());
 								}
 							}
 							break;
@@ -107,7 +110,10 @@ namespace SSofTool
 								string value = instr.args[0].ToString();
 								if (value.Equals("rbp"))
 								{
-									int len = instr.address.Length;
+                                    Frame frame = new Frame();
+                                    frame.start = pointer;
+                                    frames.Push(frame);
+									/*int len = instr.address.Length;
 									while (len != 8)
 									{
 										s.Push('0');
@@ -120,7 +126,7 @@ namespace SSofTool
 										s.Push(c);
 										stack.Add(pointer,c);
 										pointer++;
-									}
+									} */
 								}
 							}
 							break;
