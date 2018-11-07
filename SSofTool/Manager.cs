@@ -66,17 +66,18 @@ namespace SSofTool
 							{
 								if (instr.args[0].ToString().Equals("rsp"))
 								{
+
 									//Console.WriteLine("RSP: " + instr.args[1].ToString());
 									int intValue = Convert.ToInt32(instr.args[1].ToString(), 16);
-									for(int i = 0; i < intValue; i++)
+									Frame frame = new Frame(pointer, pointer + intValue);
+									frames.Push(frame);
+									for (int i = 0; i < intValue; i++)
 									{
 										//s.Push('0');
 										stack.Add(pointer, '0');
 										pointer++;
 									}
-									Frame frame = new Frame(pointer, pointer + intValue);
-									frames.Push(frame);
-									Console.WriteLine("RSP: " + intValue);
+									Console.WriteLine("limites: {0} - {1} ", pointer, pointer + intValue);
 								}
 							}
 							break;
@@ -127,13 +128,13 @@ namespace SSofTool
 												int intValue = Convert.ToInt32(args[1], 16);
 												if (!string.IsNullOrEmpty(instr.args[1].ToString()))
 												{
+													Frame frame = frames.First();
+													int i = frame.start;
+
 													foreach (char c in instr.args[1].ToString().Substring(2))
 													{
-														Frame frame = frames.First();
-														for(int i = frame.start; i < frame.end; i++)
-														{
-															stack[i] = c;
-														}
+														stack[i] = c;
+														i++;
 													}
 												}
 												//Console.WriteLine("WORD PTR " + intValue);
