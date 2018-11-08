@@ -10,29 +10,20 @@ namespace SSofTool
 	{
 		private List<Function> functions;
 		private Dictionary<string, Function> functions_dict;
-        private List<Register> registers;
+        private Dictionary<string,string> registers;
 
 		public Manager()
 		{
 			functions = new List<Function>();
 			functions_dict = new Dictionary<string, Function>();
-            registers = new List<Register>();
-            registers.Add(new Register("rax", "0x0"));
-            registers.Add(new Register("rbx", "0x0"));
-            registers.Add(new Register("rcx", "0x0"));
-            registers.Add(new Register("rdx", "0x0"));
-            registers.Add(new Register("rsi", "0x0"));
-            registers.Add(new Register("r8", "0x0"));
-            registers.Add(new Register("r9", "0x0"));
-            registers.Add(new Register("r10", "0x0"));
-            registers.Add(new Register("r11", "0x0"));
-            registers.Add(new Register("r12", "0x0"));
-            registers.Add(new Register("r13", "0x0"));
-            registers.Add(new Register("r14", "0x0"));
-            registers.Add(new Register("r15", "0x0"));
-            registers.Add(new Register("rbp", "0xFFFFFFFF"));
-            registers.Add(new Register("rsp", "0xFFFFFFFF"));
-            registers.Add(new Register("esi", "0x0"));
+            registers = new Dictionary<string, string>();
+            registers.Add("rdi", "0");
+            registers.Add("esi", "0");
+            registers.Add("rdx", "0");         
+            
+            
+            
+            
         }
 
 		public void AddFunction(string name, Function f)
@@ -173,6 +164,26 @@ namespace SSofTool
 							}
 							break;
 						case "lea":
+                            //Loads address in register
+                            
+                            if (instr.args.Length == 2)
+                            {
+                                
+                                string registername = instr.args[0].ToString(); //Register we're saving address in
+                                string args1 = instr.args[1].ToString(); // Something in shape of [rbp-0x50]
+                                string address = args1.Trim('[', ']'); // address = rbp-0x50
+                                string[] split = address.Split('-');
+                                if (split.Length == 2 && split[0] == "rbp")
+                                {
+                                    int intValue = Convert.ToInt32(split[1], 16); //Address starting from RBP to save
+                                    Frame frame = frames.First();
+                                    registers[registername] = (0xFFFFFFFF - (frame.start + intValue - 1)).ToString("X8");
+                                    Console.WriteLine("HELLO, REGISTER {0} CHARGED WITH ADDRESS {1}", registername, registers[registername]);
+                                    
+                                }
+
+
+                            }
 
 							break;
 						case "call":
@@ -262,9 +273,9 @@ namespace SSofTool
     public class Register
     {
         private string name;
-        private string value;
+        private int value;
 
-        public Register(string name, string value)
+        public Register(string name, int value)
         {
             this.name = name;
             this.value = value;
@@ -276,7 +287,7 @@ namespace SSofTool
             set { this.name = value; }
         }
 
-        public string Value
+        public int Value
         {
             get { return this.value; }
             set { this.value = value; }
