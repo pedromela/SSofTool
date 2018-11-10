@@ -30,10 +30,12 @@
 		{
 			this.Code = new System.Windows.Forms.RichTextBox();
 			this.Stack = new System.Windows.Forms.DataGridView();
-			this.LoadButton = new System.Windows.Forms.Button();
-			this.File = new System.Windows.Forms.TextBox();
 			this.Address = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.Value = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.LoadButton = new System.Windows.Forms.Button();
+			this.File = new System.Windows.Forms.TextBox();
+			this.label1 = new System.Windows.Forms.Label();
+			this.ripLabel = new System.Windows.Forms.Label();
 			((System.ComponentModel.ISupportInitialize)(this.Stack)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -41,7 +43,7 @@
 			// 
 			this.Code.Location = new System.Drawing.Point(66, 37);
 			this.Code.Name = "Code";
-			this.Code.Size = new System.Drawing.Size(175, 318);
+			this.Code.Size = new System.Drawing.Size(295, 318);
 			this.Code.TabIndex = 0;
 			this.Code.Text = "";
 			// 
@@ -51,10 +53,20 @@
 			this.Stack.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Address,
             this.Value});
-			this.Stack.Location = new System.Drawing.Point(385, 37);
+			this.Stack.Location = new System.Drawing.Point(462, 37);
 			this.Stack.Name = "Stack";
-			this.Stack.Size = new System.Drawing.Size(254, 318);
+			this.Stack.Size = new System.Drawing.Size(242, 318);
 			this.Stack.TabIndex = 1;
+			// 
+			// Address
+			// 
+			this.Address.HeaderText = "Address";
+			this.Address.Name = "Address";
+			// 
+			// Value
+			// 
+			this.Value.HeaderText = "Value";
+			this.Value.Name = "Value";
 			// 
 			// LoadButton
 			// 
@@ -73,21 +85,30 @@
 			this.File.Size = new System.Drawing.Size(175, 20);
 			this.File.TabIndex = 3;
 			// 
-			// Address
+			// label1
 			// 
-			this.Address.HeaderText = "Address";
-			this.Address.Name = "Address";
+			this.label1.AutoSize = true;
+			this.label1.Location = new System.Drawing.Point(462, 379);
+			this.label1.Name = "label1";
+			this.label1.Size = new System.Drawing.Size(24, 13);
+			this.label1.TabIndex = 4;
+			this.label1.Text = "rip: ";
 			// 
-			// Value
+			// ripLabel
 			// 
-			this.Value.HeaderText = "Value";
-			this.Value.Name = "Value";
+			this.ripLabel.AutoSize = true;
+			this.ripLabel.Location = new System.Drawing.Point(493, 379);
+			this.ripLabel.Name = "ripLabel";
+			this.ripLabel.Size = new System.Drawing.Size(0, 13);
+			this.ripLabel.TabIndex = 5;
 			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(800, 450);
+			this.Controls.Add(this.ripLabel);
+			this.Controls.Add(this.label1);
 			this.Controls.Add(this.File);
 			this.Controls.Add(this.LoadButton);
 			this.Controls.Add(this.Stack);
@@ -108,6 +129,8 @@
 		private System.Windows.Forms.TextBox File;
 		private System.Windows.Forms.DataGridViewTextBoxColumn Address;
 		private System.Windows.Forms.DataGridViewTextBoxColumn Value;
+		private System.Windows.Forms.Label label1;
+		private System.Windows.Forms.Label ripLabel;
 	}
 }
 

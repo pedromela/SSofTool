@@ -11,31 +11,34 @@ namespace SSofTool
 		private List<Function> functions;
 		private Dictionary<string, Function> functions_dict;
         private Dictionary<string,string> registers;
-
+		private Dictionary<string, string> cstuff;
 		public Manager()
 		{
+			cstuff = new Dictionary<string, string>(); 
 			functions = new List<Function>();
 			functions_dict = new Dictionary<string, Function>();
             registers = new Dictionary<string, string>();
             registers.Add("rdi", "0");
             registers.Add("esi", "0");
-            registers.Add("rdx", "0");         
-            
-            
-            
-            
-        }
+			registers.Add("rax", "0");
+			registers.Add("rdx", "0");
+			registers.Add("rip", "0");
+			registers.Add("rbp", "0");
+
+		}
 
 		public void AddFunction(string name, Function f)
 		{
 			functions_dict.Add(name, f);
 			functions.Add(f);
 		}
+
 		public void Clear()
 		{
 			functions.Clear();
 			functions_dict.Clear();
 		}
+
 		public Function GetFunction(string name) {
 			functions_dict.TryGetValue(name, out Function f);
 			return f;
@@ -57,6 +60,31 @@ namespace SSofTool
 			return res;
 
 		}
+		public string GetRegister(string name)
+		{
+			if(registers.ContainsKey(name))
+			{
+				return registers[name];
+			}
+			return null;
+		}
+
+		public void SetRip(Instruction instr)
+		{
+			registers["rip"] = instr.address;
+
+		}
+		public string AutoComplete(string str, int size)
+		{
+			if(str.Length < 8)
+			{
+				for(int i = 0; i <= 8 - str.Length; i++)
+				{
+					str = '0' + str; // += '0';
+				}
+			}
+			return str;
+		}
 		public Dictionary<int, char> Stack()
 		{
 			Dictionary<int, char> stack = new Dictionary<int, char>();
@@ -68,6 +96,8 @@ namespace SSofTool
 			{
 				foreach (Instruction instr in f.GetInstructions())
 				{
+					SetRip(instr);
+					Console.WriteLine("rbp : " + registers["rbp"]);
 					switch (instr.op)
 					{
 						case "sub":
@@ -124,36 +154,60 @@ namespace SSofTool
 						case "mov":
 							if (instr.args.Length > 1)
 							{
-								//Console.WriteLine("{0} {1}, {2}", instr.op, instr.args[0], instr.args[1]);
-
+								
 								string arg1 = instr.args[0].ToString();
 								string[] tokens = arg1.Split(' ');
-								if(tokens.Length == 3)
+								if (tokens.Length == 3)
 								{
 									if ((tokens[0].Substring(1) + tokens[1]).Equals("WORDPTR"))
 									{
 										string x = arg1.Substring(10);
 										if (x.Contains("rbp"))
 										{
-											
+
 											x = x.Trim('[', ']');
 											string[] args = x.Split('-');
-											if(args.Length == 2)
+											if (args.Length == 2)
 											{
 												int intValue = Convert.ToInt32(args[1], 16);
 												if (!string.IsNullOrEmpty(instr.args[1].ToString()))
 												{
 													Frame frame = frames.First();
-													int i = frame.start + intValue;
-													Console.WriteLine("i : " + i);
+													int i = frame.start + intValue - 1;
+													//Console.WriteLine("i : " + i);
 													foreach (char c in instr.args[1].ToString().Substring(2))
 													{
 														stack[i] = c;
 														i--;
 													}
 												}
-												Console.WriteLine("WORD PTR " + intValue);
+												//Console.WriteLine("WORD PTR " + intValue);
 											}
+										}
+									}
+								}
+								else
+								{
+
+									foreach (var r in registers)
+									{
+										if (arg1.Equals(r.Key))
+										{
+											Console.WriteLine("{0} {1}, {2}", instr.op, instr.args[0], instr.args[1]);
+											if (instr.args.Length == 3)
+											{
+												string[] toks = instr.args[2].ToString().Split(' ');
+												if (toks.Length == 3)
+												{
+													instr.args[instr.args.Count() - 1] = toks[1];
+													toks[1] = AutoComplete(toks[1], 8);
+													Console.WriteLine("obs arg: " + toks[2]);
+												
+													registers[r.Key] = toks[1];
+													cstuff.Add(toks[1], toks[2]);
+												}
+											}
+											break;
 										}
 									}
 								}

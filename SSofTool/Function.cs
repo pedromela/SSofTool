@@ -50,7 +50,7 @@ namespace SSofTool
 					instr.args = new object[args.Count()];
 					foreach (JToken arg in args)
 					{
-						Console.WriteLine("args {0}", arg);
+						//Console.WriteLine("args {0}", arg);
 						if (arg.ToString().First() == '#')
 						{
 							instr.args[args.Count() - 1] = arg;

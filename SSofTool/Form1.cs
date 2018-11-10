@@ -75,6 +75,7 @@ namespace SSofTool
 		{
 			object[] pars = { "av", "ac" };
 			Dictionary<int, char> stack = manager.Stack();
+			ripLabel.Text = manager.GetRegister("rip");
 			foreach(var item in stack)
 			{
 				pars[0] = (0xFFFFFFFF - item.Key).ToString("X8");
