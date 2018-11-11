@@ -237,7 +237,6 @@ namespace SSofTool
 													n = 4;
 												}
 												string number = AutoComplete(instr.args[1].ToString().Substring(2), n);
-												Console.WriteLine("AQUI : " + number);
 												foreach (char c in number)
 												{
 													stack[i] = c;
@@ -347,14 +346,14 @@ namespace SSofTool
 									{
 										input = RandomString(bufflen);
 										Frame frame = frames.First();
-										Console.WriteLine("Frame end : " + frame.end);
+										//Console.WriteLine("Frame end : " + frame.end);
 
 										for (int i = 0; i < bufflen; i++)
 										{
 											if (stack.ContainsKey(frame.end - i))
 											{
 												stack[frame.end - i] = input[i];
-												Console.WriteLine("line {0}, pointer {1}", instr.address, frame.end - i);
+												//Console.WriteLine("line {0}, pointer {1}", instr.address, frame.end - i);
 
 											}
 											else
@@ -376,7 +375,7 @@ namespace SSofTool
 									{
 										input = RandomString(bufflen);
 										Frame frame = frames.First();
-										Console.WriteLine("Frame end : " + frame.end);
+										//Console.WriteLine("Frame end : " + frame.end);
 										for (int i = 0; i < bufflen; i++)
 										{
 											if (stack.ContainsKey(frame.end - i))
@@ -392,7 +391,7 @@ namespace SSofTool
 
 								break;
 							default:
-								Console.WriteLine("function : {0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
+								//Console.WriteLine("function : {0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
 								name = instr.args[0].ToString().Trim('<', '>');
 								if (functions_dict.ContainsKey(name))
 								{
