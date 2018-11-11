@@ -18,14 +18,26 @@ namespace SSofTool
 			functions = new List<Function>();
 			functions_dict = new Dictionary<string, Function>();
             registers = new Dictionary<string, string>();
-            registers.Add("rdi", "00000000");
-            registers.Add("esi", "0000");
+		}
+
+		public void InitializeRegisters()
+		{
+			registers.Add("rdi", "00000000");
+			registers.Add("esi", "0000");
 			registers.Add("eax", "0000");
 			registers.Add("rax", "00000000");
 			registers.Add("rdx", "00000000");
 			registers.Add("rip", "00000000");
 			registers.Add("rbp", "FFFFFFFF");
 			registers.Add("rsp", "FFFFFFFF");
+		}
+
+		private static Random random = new Random();
+		public static string RandomString(int length)
+		{
+			const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+			return new string(Enumerable.Repeat(chars, length)
+			  .Select(s => s[random.Next(s.Length)]).ToArray());
 		}
 
 		public void AddFunction(string name, Function f)
@@ -38,6 +50,9 @@ namespace SSofTool
 		{
 			functions.Clear();
 			functions_dict.Clear();
+			cstuff.Clear();
+			registers.Clear();
+			InitializeRegisters();
 		}
 
 		public Function GetFunction(string name) {
@@ -72,7 +87,7 @@ namespace SSofTool
 
 		public void SetRip(Instruction instr)
 		{
-			registers["rip"] = instr.address;
+			registers["rip"] = AutoComplete(instr.address, 8);
 
 		}
 		public string AutoComplete(string str, int size)
@@ -280,74 +295,53 @@ namespace SSofTool
                                 {
                                     int intValue = Convert.ToInt32(split[1], 16); //Address starting from RBP to save
                                     Frame frame = frames.First();
-                                    registers[registername] = (0xFFFFFFFF - (frame.start + intValue - 1)).ToString("X8");
+									Console.WriteLine(registers["rbp"]);
+                                    registers[registername] = (Convert.ToInt32(registers["rbp"], 16) - intValue).ToString("X8");
                                     Console.WriteLine("HELLO, REGISTER {0} CHARGED WITH ADDRESS {1}", registername, registers[registername]);
-                                    
                                 }
-
-
                             }
-
 							break;
 						case "call":
-         //                   if (instr.args.Length < 1)
-         //                   {
-         //                       Console.WriteLine("This call makes no sense");
-         //                   }
-         //                   Console.WriteLine("{0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
+							if (instr.args.Length < 1)
+							{
+								Console.WriteLine("This call makes no sense");
+							}
+							Console.WriteLine("CALL : {0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
 
 
-         //                   switch (instr.args[0].ToString())
-         //                   {
-         //                       //case for dangerous function calls
-         //                       case "<fgets@plt>":
-         //                           Console.WriteLine("{0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
+							switch (instr.args[0].ToString())
+							{
+								//case for dangerous function calls
+								case "<fgets@plt>":
+									Console.WriteLine("{0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
 
-         //                           //fgets is dangerous, there's 3 arguments  that are put in registers before calling an fgets
-         //                           //the buffer (LEA'd into register)
-         //                           //the buff_len (mov'd into register)
-         //                           //the stdinstream (This is accessed via mov [rip-"code"])
-         //                           string buffstart;
-         //                           string bufflen;
-         //                           string[] split;
-         //                           string rip;
-         //                           string register;
-									//Console.WriteLine("CALL:");
-         //                           int instrcounter = instr.pos - 4;
-         //                           Instruction instrstdin = f.GetInstruction(instrcounter);
+									//fgets is dangerous, there's 3 arguments  that are put in registers before calling an fgets
+									//the buffer (LEA'd into register)
+									//the buff_len (mov'd into register)
+									//the stdinstream (This is accessed via mov [rip-"code"])
+									string buffstart = registers["rdi"];
+									int bufflen = Convert.ToInt32(registers["esi"],16);
+									string rip = registers["rip"];
+									string input = registers["rdx"];
+									if(cstuff.ContainsKey(input))
+									{
+										Console.WriteLine("input: " + cstuff[input]);
 
-         //                           rip = instrstdin.args[1].ToString();
-         //                           split = rip.Split(' ');
-         //                           if (split[2].Equals("[rip+0x200b03]")) //ponteiro p stdin q vai ser passado ao fgets, uma call ao fgets faz smpr isto nesta ordem
-         //                           {
-         //                               Console.WriteLine("{0} {1} {2}", instrstdin.pos, instrstdin.args[0], instrstdin.args[1]);
-         //                               instrcounter++;
-         //                               Instruction instrlea = f.GetInstruction(instrcounter);
-         //                               if (instrlea.op.Equals("lea"))
-         //                               {
-         //                                   register = instrlea.args[0].ToString();
-         //                                   buffstart = instrlea.args[1].ToString(); // ponteiro pa variavel buffer na stack é guardado num registo q vai ser passado ao fgets
-         //                                   instrcounter++;
-         //                                   Instruction instrbufflen = f.GetInstruction(instrcounter);
-         //                                   if (instrbufflen.op.Equals("mov") && instrbufflen.args[0].ToString().Equals("esi"))
-         //                                   {
-         //                                       bufflen = instrbufflen.args[1].ToString(); // o valor do buff_len do fgets e posto num registo
-         //                                       instrcounter++;
-         //                                       Instruction instrmov = f.GetInstruction(instrcounter++);
-         //                                       if (instrmov.op.Equals("mov") && instrmov.args[1].ToString().Equals(register)) // o ponteiro para o buffer que foi colocado num registo é posto noutro registo conhecido ao fgets
-         //                                       {
-         //                                           Console.WriteLine("fgets chamou, guardámos o bufflen, agr vamos ver se pode existir acesso outofbound, ou um overflow numa variável da frame");
-         //                                           List<Variable> variablelist = f.getVariables();
+										if (cstuff[input].Equals("<stdin@@GLIBC_2.2.5>"))
+										{
+											input = RandomString(bufflen);
+											Frame frame = frames.First();
+											for (int i = 0; i < bufflen; i++)
+											{
+												stack[frame.end - i] = input[i];
+											}
+										}
+									}
 
+									break;
 
-         //                                       }
-         //                                   }
-         //                               }
-         //                           }
-                            //        break;
-
-                            //}
-                            break;
+							}
+							break;
 
                             
 						case "leave":
