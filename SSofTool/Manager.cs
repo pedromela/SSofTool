@@ -18,13 +18,14 @@ namespace SSofTool
 			functions = new List<Function>();
 			functions_dict = new Dictionary<string, Function>();
             registers = new Dictionary<string, string>();
-            registers.Add("rdi", "0");
-            registers.Add("esi", "0");
-			registers.Add("rax", "0");
-			registers.Add("rdx", "0");
-			registers.Add("rip", "0");
-			registers.Add("rbp", "0");
-
+            registers.Add("rdi", "00000000");
+            registers.Add("esi", "0000");
+			registers.Add("eax", "0000");
+			registers.Add("rax", "00000000");
+			registers.Add("rdx", "00000000");
+			registers.Add("rip", "00000000");
+			registers.Add("rbp", "FFFFFFFF");
+			registers.Add("rsp", "FFFFFFFF");
 		}
 
 		public void AddFunction(string name, Function f)
@@ -76,14 +77,31 @@ namespace SSofTool
 		}
 		public string AutoComplete(string str, int size)
 		{
-			if(str.Length < 8)
+			Console.WriteLine("str.size : " +str.Length + " size : " + size);
+			int len = str.Length;
+			if(len < size)
 			{
-				for(int i = 0; i <= 8 - str.Length; i++)
+				for(int i = 0; i < size - len; i++)
 				{
+
 					str = '0' + str; // += '0';
 				}
 			}
 			return str;
+		}
+
+		public string ParseHex(string str, int size)
+		{
+			str = str.Trim();
+			if (str.StartsWith("0x"))
+			{
+				string hex = str.Substring(2);
+				return AutoComplete(hex, size);
+			}
+			else
+			{
+				return null;
+			}
 		}
 		public Dictionary<int, char> Stack()
 		{
@@ -97,7 +115,7 @@ namespace SSofTool
 				foreach (Instruction instr in f.GetInstructions())
 				{
 					SetRip(instr);
-					Console.WriteLine("rbp : " + registers["rbp"]);
+					Console.WriteLine("rsp : " + registers["eax"]);
 					switch (instr.op)
 					{
 						case "sub":
@@ -131,10 +149,10 @@ namespace SSofTool
 								string value = instr.args[0].ToString();
 								if (value.Equals("rbp"))
 								{
-                                    Frame frame = new Frame();
-                                    frame.start = pointer;
-                                    frames.Push(frame);
-									int len = instr.address.Length;
+                                    //Frame frame = new Frame();
+                                    //frame.start = pointer;
+                                    //frames.Push(frame);
+									int len = registers["rbp"].Length;
 									while (len != 8)
 									{
 										s.Push('0');
@@ -142,12 +160,13 @@ namespace SSofTool
 										pointer++;
 										len++;
 									}
-									foreach (char c in instr.address)
+									foreach (char c in registers["rbp"])
 									{
 										s.Push(c);
 										stack.Add(pointer,c);
 										pointer++;
-									} 
+									}
+									registers["rsp"] = (0xFFFFFFFF - pointer).ToString("X8");
 								}
 							}
 							break;
@@ -188,23 +207,53 @@ namespace SSofTool
 								}
 								else
 								{
-
 									foreach (var r in registers)
 									{
 										if (arg1.Equals(r.Key))
 										{
-											Console.WriteLine("{0} {1}, {2}", instr.op, instr.args[0], instr.args[1]);
 											if (instr.args.Length == 3)
 											{
 												string[] toks = instr.args[2].ToString().Split(' ');
+												int n = 0;
+												if(instr.args[1].ToString().First() == 'Q')
+												{
+													n = 8;
+												}
+												if (instr.args[1].ToString().First() == 'D')
+												{
+													n = 4;
+												}
 												if (toks.Length == 3)
 												{
 													instr.args[instr.args.Count() - 1] = toks[1];
-													toks[1] = AutoComplete(toks[1], 8);
+													toks[1] = AutoComplete(toks[1], n);
 													Console.WriteLine("obs arg: " + toks[2]);
 												
 													registers[r.Key] = toks[1];
 													cstuff.Add(toks[1], toks[2]);
+												}
+											}
+											if(instr.args.Length == 2)
+											{
+
+												string aux = ParseHex(instr.args[1].ToString(), r.Value.Length);
+												Console.WriteLine("aqui ! {0} {1}, {2}", instr.op, instr.args[0], instr.args[1]);
+
+												Console.WriteLine("aux " + aux);
+												if (aux != null)
+												{
+													registers[r.Key] = aux;
+												}
+												else
+												{
+													foreach (var reg in registers)
+													{
+														if (instr.args[1].ToString().Equals(reg.Key))
+														{
+															registers[r.Key] = registers[reg.Key];
+															break;
+														}
+													}
 												}
 											}
 											break;
