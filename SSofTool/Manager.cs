@@ -12,12 +12,24 @@ namespace SSofTool
 		private Dictionary<string, Function> functions_dict;
         private Dictionary<string,string> registers;
 		private Dictionary<string, string> cstuff;
+
+		public int n_instructions = 0;
+		
+		/*auxliary stuff*/
+		private Dictionary<int, char> stack;
+		private int pointer;
+		private Stack<Frame> frames;
+
 		public Manager()
 		{
 			cstuff = new Dictionary<string, string>(); 
 			functions = new List<Function>();
 			functions_dict = new Dictionary<string, Function>();
             registers = new Dictionary<string, string>();
+			stack = new Dictionary<int, char>();
+			frames = new Stack<Frame>();
+			pointer = 0;
+			InitializeRegisters();
 		}
 
 		public void InitializeRegisters()
@@ -35,7 +47,7 @@ namespace SSofTool
 		private static Random random = new Random();
 		public static string RandomString(int length)
 		{
-			const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+			const string chars = "0123456789ABCDEF";
 			return new string(Enumerable.Repeat(chars, length)
 			  .Select(s => s[random.Next(s.Length)]).ToArray());
 		}
@@ -52,6 +64,10 @@ namespace SSofTool
 			functions_dict.Clear();
 			cstuff.Clear();
 			registers.Clear();
+			stack.Clear();
+			frames.Clear();
+			pointer = 0;
+			n_instructions = 0;
 			InitializeRegisters();
 		}
 
@@ -88,11 +104,10 @@ namespace SSofTool
 		public void SetRip(Instruction instr)
 		{
 			registers["rip"] = AutoComplete(instr.address, 8);
-
+			//n_instructions++;
 		}
 		public string AutoComplete(string str, int size)
 		{
-			Console.WriteLine("str.size : " +str.Length + " size : " + size);
 			int len = str.Length;
 			if(len < size)
 			{
@@ -118,243 +133,249 @@ namespace SSofTool
 				return null;
 			}
 		}
-		public Dictionary<int, char> Stack()
+		public Dictionary<int, char> Stack(string name)
 		{
-			Dictionary<int, char> stack = new Dictionary<int, char>();
-			int pointer = 0;
-			Stack<char> s = new Stack<char>();
-			Stack<Frame> frames = new Stack<Frame>();
-			//Stack<string> frames
-			foreach (Function f in functions)
+			Function f = functions_dict[name];
+			
+			foreach (Instruction instr in f.GetInstructions())
 			{
-				foreach (Instruction instr in f.GetInstructions())
+				SetRip(instr);
+				//Console.WriteLine("rsp : " + registers["eax"]);
+				switch (instr.op)
 				{
-					SetRip(instr);
-					Console.WriteLine("rsp : " + registers["eax"]);
-					switch (instr.op)
-					{
-						case "sub":
-							if(instr.args.Length == 2)
+					case "sub":
+						if(instr.args.Length == 2)
+						{
+							if (instr.args[0].ToString().Equals("rsp"))
 							{
-								if (instr.args[0].ToString().Equals("rsp"))
+								int intValue = Convert.ToInt32(instr.args[1].ToString(), 16);
+								Frame frame = new Frame(pointer, pointer + intValue);
+								frames.Push(frame);
+								for (int i = 0; i < intValue; i++)
 								{
-
-									//Console.WriteLine("RSP: " + instr.args[1].ToString());
-									int intValue = Convert.ToInt32(instr.args[1].ToString(), 16);
-                                    //Frame frame = frames.First();
-                                    //frame.end = pointer + intValue;
-									Frame frame = new Frame(pointer, pointer + intValue);
-									frames.Push(frame);
-									for (int i = 0; i < intValue; i++)
-									{
-										//s.Push('0');
-										stack.Add(pointer, '0');
-										pointer++;
-									}
-									Console.WriteLine("limites: {0} - {1} ", frame.start, frame.end);
-                                    Console.WriteLine(pointer.ToString());
+									//s.Push('0');
+									stack.Add(pointer, '0');
+									pointer++;
 								}
+								//Console.WriteLine("limites: {0} - {1} ", frame.start, frame.end);
+                                //Console.WriteLine(pointer.ToString());
 							}
-							break;
-						case "push":
+						}
+						break;
+					case "push":
 							
-							int l = instr.args.Length;
-							if(l == 1)
+						int l = instr.args.Length;
+						if(l == 1)
+						{
+							string value = instr.args[0].ToString();
+							if (value.Equals("rbp"))
 							{
-								string value = instr.args[0].ToString();
-								if (value.Equals("rbp"))
+								int len = registers["rbp"].Length;
+								while (len != 8)
 								{
-                                    //Frame frame = new Frame();
-                                    //frame.start = pointer;
-                                    //frames.Push(frame);
-									int len = registers["rbp"].Length;
-									while (len != 8)
-									{
-										s.Push('0');
-										stack.Add(pointer, '0');
-										pointer++;
-										len++;
-									}
-									foreach (char c in registers["rbp"])
-									{
-										s.Push(c);
-										stack.Add(pointer,c);
-										pointer++;
-									}
-									registers["rsp"] = (0xFFFFFFFF - pointer).ToString("X8");
+									stack.Add(pointer, '0');
+									pointer++;
+									len++;
 								}
+								foreach (char c in registers["rbp"])
+								{
+									if (stack.ContainsKey(pointer))
+									{
+										Console.WriteLine("pointer : " + pointer + " , c : " + c);
+									}else
+									{
+										stack.Add(pointer, c);
+									}
+
+									pointer++;
+								}
+								registers["rsp"] = (0xFFFFFFFF - pointer).ToString("X8");
 							}
-							break;
-						case "mov":
-							if (instr.args.Length > 1)
-							{
+						}
+						break;
+					case "mov":
+						if (instr.args.Length > 1)
+						{
 								
-								string arg1 = instr.args[0].ToString();
-								string[] tokens = arg1.Split(' ');
-								if (tokens.Length == 3)
+							string arg1 = instr.args[0].ToString();
+							string[] tokens = arg1.Split(' ');
+							if (tokens.Length == 3)
+							{
+								if ((tokens[0].Substring(1) + tokens[1]).Equals("WORDPTR"))
 								{
-									if ((tokens[0].Substring(1) + tokens[1]).Equals("WORDPTR"))
+									string x = arg1.Substring(10);
+									if (x.Contains("rbp"))
 									{
-										string x = arg1.Substring(10);
-										if (x.Contains("rbp"))
-										{
 
-											x = x.Trim('[', ']');
-											string[] args = x.Split('-');
-											if (args.Length == 2)
+										x = x.Trim('[', ']');
+										string[] args = x.Split('-');
+										if (args.Length == 2)
+										{
+											int intValue = Convert.ToInt32(args[1], 16);
+											if (!string.IsNullOrEmpty(instr.args[1].ToString()))
 											{
-												int intValue = Convert.ToInt32(args[1], 16);
-												if (!string.IsNullOrEmpty(instr.args[1].ToString()))
+												Frame frame = frames.First();
+												int i = frame.start + intValue - 1;
+												foreach (char c in instr.args[1].ToString().Substring(2))
 												{
-													Frame frame = frames.First();
-													int i = frame.start + intValue - 1;
-													//Console.WriteLine("i : " + i);
-													foreach (char c in instr.args[1].ToString().Substring(2))
-													{
-														stack[i] = c;
-														i--;
-													}
+													stack[i] = c;
+													i--;
 												}
-												//Console.WriteLine("WORD PTR " + intValue);
 											}
 										}
 									}
 								}
-								else
+							}
+							else
+							{
+								foreach (var r in registers)
 								{
-									foreach (var r in registers)
+									if (arg1.Equals(r.Key))
 									{
-										if (arg1.Equals(r.Key))
+										if (instr.args.Length == 3)
 										{
-											if (instr.args.Length == 3)
+											string[] toks = instr.args[2].ToString().Split(' ');
+											int n = 0;
+											if(instr.args[1].ToString().First() == 'Q')
 											{
-												string[] toks = instr.args[2].ToString().Split(' ');
-												int n = 0;
-												if(instr.args[1].ToString().First() == 'Q')
-												{
-													n = 8;
-												}
-												if (instr.args[1].ToString().First() == 'D')
-												{
-													n = 4;
-												}
-												if (toks.Length == 3)
-												{
-													instr.args[instr.args.Count() - 1] = toks[1];
-													toks[1] = AutoComplete(toks[1], n);
-													Console.WriteLine("obs arg: " + toks[2]);
+												n = 8;
+											}
+											if (instr.args[1].ToString().First() == 'D')
+											{
+												n = 4;
+											}
+											if (toks.Length == 3)
+											{
+												instr.args[instr.args.Count() - 1] = toks[1];
+												toks[1] = AutoComplete(toks[1], n);
 												
-													registers[r.Key] = toks[1];
-													cstuff.Add(toks[1], toks[2]);
-												}
+												registers[r.Key] = toks[1];
+												cstuff.Add(toks[1], toks[2]);
 											}
-											if(instr.args.Length == 2)
+										}
+										if(instr.args.Length == 2)
+										{
+
+											string aux = ParseHex(instr.args[1].ToString(), r.Value.Length);
+
+											if (aux != null)
 											{
-
-												string aux = ParseHex(instr.args[1].ToString(), r.Value.Length);
-												Console.WriteLine("aqui ! {0} {1}, {2}", instr.op, instr.args[0], instr.args[1]);
-
-												Console.WriteLine("aux " + aux);
-												if (aux != null)
+												registers[r.Key] = aux;
+											}
+											else
+											{
+												foreach (var reg in registers)
 												{
-													registers[r.Key] = aux;
-												}
-												else
-												{
-													foreach (var reg in registers)
+													if (instr.args[1].ToString().Equals(reg.Key))
 													{
-														if (instr.args[1].ToString().Equals(reg.Key))
-														{
-															registers[r.Key] = registers[reg.Key];
-															break;
-														}
+														registers[r.Key] = registers[reg.Key];
+														break;
 													}
 												}
 											}
-											break;
+										}
+										break;
+									}
+								}
+							}
+						}
+						break;
+					case "lea":
+                        //Loads address in register
+                            
+                        if (instr.args.Length == 2)
+                        {
+                                
+                            string registername = instr.args[0].ToString(); //Register we're saving address in
+                            string args1 = instr.args[1].ToString(); // Something in shape of [rbp-0x50]
+                            string address = args1.Trim('[', ']'); // address = rbp-0x50
+                            string[] split = address.Split('-');
+                            if (split.Length == 2 && split[0] == "rbp")
+                            {
+                                int intValue = Convert.ToInt32(split[1], 16); //Address starting from RBP to save
+                                Frame frame = frames.First();
+                                registers[registername] = (Convert.ToInt32(registers["rbp"], 16) - intValue).ToString("X8");
+                                //Console.WriteLine("HELLO, REGISTER {0} CHARGED WITH ADDRESS {1}", registername, registers[registername]);
+                            }
+                        }
+						break;
+					case "call":
+						if (instr.args.Length < 1)
+						{
+							Console.WriteLine("This call makes no sense");
+						}
+						//Console.WriteLine("CALL : {0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
+
+						//fgets is dangerous, there's 3 arguments  that are put in registers before calling an fgets
+						//the buffer (LEA'd into register)
+						//the buff_len (mov'd into register)
+						//the stdinstream (This is accessed via mov [rip-"code"])
+						string buffstart = registers["rdi"];
+						int bufflen = Convert.ToInt32(registers["esi"], 16);
+						string rip = registers["rip"];
+						string input = registers["rdx"];
+						switch (instr.args[0].ToString())
+						{
+							//case for dangerous function calls
+							case "<fgets@plt>":
+								if(cstuff.ContainsKey(input))
+								{
+									//Console.WriteLine("input: " + cstuff[input]);
+
+									if (cstuff[input].Equals("<stdin@@GLIBC_2.2.5>"))
+									{
+										input = RandomString(bufflen);
+										Frame frame = frames.First();
+										for (int i = 0; i < bufflen; i++)
+										{
+											stack[frame.end - i] = input[i];
 										}
 									}
 								}
-								//foreach(string str in tokens)
-								//{
-								//	Console.WriteLine(str);
-								//}
-							}
-							break;
-						case "lea":
-                            //Loads address in register
-                            
-                            if (instr.args.Length == 2)
-                            {
-                                
-                                string registername = instr.args[0].ToString(); //Register we're saving address in
-                                string args1 = instr.args[1].ToString(); // Something in shape of [rbp-0x50]
-                                string address = args1.Trim('[', ']'); // address = rbp-0x50
-                                string[] split = address.Split('-');
-                                if (split.Length == 2 && split[0] == "rbp")
-                                {
-                                    int intValue = Convert.ToInt32(split[1], 16); //Address starting from RBP to save
-                                    Frame frame = frames.First();
-									Console.WriteLine(registers["rbp"]);
-                                    registers[registername] = (Convert.ToInt32(registers["rbp"], 16) - intValue).ToString("X8");
-                                    Console.WriteLine("HELLO, REGISTER {0} CHARGED WITH ADDRESS {1}", registername, registers[registername]);
-                                }
-                            }
-							break;
-						case "call":
-							if (instr.args.Length < 1)
-							{
-								Console.WriteLine("This call makes no sense");
-							}
-							Console.WriteLine("CALL : {0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
 
+								break;
+							case "<strcpy@plt>":
+								//Console.WriteLine("{0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
+								if (cstuff.ContainsKey(input))
+								{
+									//Console.WriteLine("input: " + cstuff[input]);
 
-							switch (instr.args[0].ToString())
-							{
-								//case for dangerous function calls
-								case "<fgets@plt>":
-									Console.WriteLine("{0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
-
-									//fgets is dangerous, there's 3 arguments  that are put in registers before calling an fgets
-									//the buffer (LEA'd into register)
-									//the buff_len (mov'd into register)
-									//the stdinstream (This is accessed via mov [rip-"code"])
-									string buffstart = registers["rdi"];
-									int bufflen = Convert.ToInt32(registers["esi"],16);
-									string rip = registers["rip"];
-									string input = registers["rdx"];
-									if(cstuff.ContainsKey(input))
+									if (cstuff[input].Equals("<stdin@@GLIBC_2.2.5>"))
 									{
-										Console.WriteLine("input: " + cstuff[input]);
-
-										if (cstuff[input].Equals("<stdin@@GLIBC_2.2.5>"))
+										input = RandomString(bufflen);
+										Frame frame = frames.First();
+										for (int i = 0; i < bufflen; i++)
 										{
-											input = RandomString(bufflen);
-											Frame frame = frames.First();
-											for (int i = 0; i < bufflen; i++)
-											{
-												stack[frame.end - i] = input[i];
-											}
+											stack[frame.end - i] = input[i];
 										}
 									}
+								}
 
-									break;
-
-							}
-							break;
+								break;
+							default:
+								Console.WriteLine("function : {0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
+								name = instr.args[0].ToString().Trim('<', '>');
+								if (functions_dict.ContainsKey(name))
+								{
+									stack.Concat(Stack(name));
+									frames.Pop();
+								}
+								break;
+						}
+						break;
 
                             
-						case "leave":
+					case "leave":
 
-							break;
-						case "ret":
+						break;
+					case "ret":
 
-							break;
-						default:
-							break;
-					}
+						break;
+					default:
+						break;
 				}
 			}
+			
 
 			return stack;
 		}

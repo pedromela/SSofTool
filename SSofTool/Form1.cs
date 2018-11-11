@@ -28,6 +28,9 @@ namespace SSofTool
 			InitializeComponent();
 			manager = new Manager();
 			filename = input;
+			LoadJson(filename);
+			LoadCode();
+			LoadStack();
 		}
 
 		private void Init() {
@@ -50,7 +53,6 @@ namespace SSofTool
 				//Console.WriteLine("=========================================================================");
 
 				dynamic array = JsonConvert.DeserializeObject(json);
-				dynamic aux_array;
 				foreach (dynamic item in array)
 				{
 					//Console.WriteLine("=========================================================================");
@@ -58,6 +60,7 @@ namespace SSofTool
 					//Console.WriteLine(item.Name);
 					Newtonsoft.Json.Linq.JObject jObject = (Newtonsoft.Json.Linq.JObject)item.Value;
 					Function f = new Function(jObject);
+					manager.n_instructions += f.Ninstructions;
 					manager.AddFunction(item.Name, f);
 					//Console.WriteLine("=========================================================================");
 
@@ -73,8 +76,12 @@ namespace SSofTool
 
 		private void LoadStack()
 		{
+			Stack.Rows.Clear();
+			//stack.
+			//Stack.ClearSelection();
+			
 			object[] pars = { "av", "ac" };
-			Dictionary<int, char> stack = manager.Stack();
+			Dictionary<int, char> stack = manager.Stack("main");
 			ripLabel.Text = manager.GetRegister("rip");
 			foreach(var item in stack)
 			{
@@ -93,26 +100,53 @@ namespace SSofTool
 		private void LoadButton_Click(object sender, EventArgs e)
 		{
 			Clear();
+			//manager.n_instructions = (int) instruction.Value;
+			//instruction.Value = manager.n_instructions;
 			if (string.IsNullOrEmpty(File.Text)) {
 				Console.WriteLine("Couldnt load file!");
 				//return;
 			}
 
 			string file = File.Text;
-			if(filename != null)
+			
+			if (string.IsNullOrEmpty(file))
 			{
-				LoadJson(filename);
-			} else
-			{
-				if (string.IsNullOrEmpty(file))
-				{
-					LoadJson("test01.json");
-				}
-				else
-				{
-					LoadJson(file);
-				}
+				LoadJson("test02.json");
 			}
+			else
+			{
+				Console.WriteLine("Loading {0}...", file);
+
+				LoadJson(file);
+			}
+			
+			LoadCode();
+			LoadStack();
+			instruction.Value = manager.n_instructions;
+
+		}
+
+		private void Next_Click(object sender, EventArgs e)
+		{
+			
+		}
+
+		private void instruction_ValueChanged(object sender, EventArgs e)
+		{
+
+		}
+
+		private void Prev_Click(object sender, EventArgs e)
+		{
+			Clear();
+			manager.n_instructions = (int)instruction.Value - 1;
+			//instruction.Value = manager.n_instructions;
+			if (string.IsNullOrEmpty(File.Text))
+			{
+				Console.WriteLine("Couldnt load file!");
+				//return;
+			}
+
 			LoadCode();
 			LoadStack();
 		}
