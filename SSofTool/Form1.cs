@@ -85,7 +85,8 @@ namespace SSofTool
 			ripLabel.Text = manager.GetRegister("rip");
 			foreach(var item in stack)
 			{
-				pars[0] = (0xFFFFFFFF - item.Key).ToString("X8");
+				pars[0] = item.Key;
+				//pars[0] = (0xFFFFFFFF - item.Key).ToString("X8");
 				pars[1] = item.Value;
 				Stack.Rows.Add(pars);
 
@@ -111,7 +112,7 @@ namespace SSofTool
 			
 			if (string.IsNullOrEmpty(file))
 			{
-				LoadJson("test02.json");
+				LoadJson("test01.json");
 			}
 			else
 			{

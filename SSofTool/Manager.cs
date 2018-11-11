@@ -133,6 +133,7 @@ namespace SSofTool
 				return null;
 			}
 		}
+
 		public Dictionary<int, char> Stack(string name)
 		{
 			Function f = functions_dict[name];
@@ -142,7 +143,9 @@ namespace SSofTool
 				SetRip(instr);
 				//Console.WriteLine("rsp : " + registers["rsp"]);
 				//Console.WriteLine("rbp : " + registers["rbp"]);
+
 				Console.WriteLine("{0}", instr.op);
+				Console.WriteLine("{0}", pointer);
 
 				switch (instr.op)
 				{
@@ -152,7 +155,7 @@ namespace SSofTool
 							if (instr.args[0].ToString().Equals("rsp"))
 							{
 								int intValue = Convert.ToInt32(instr.args[1].ToString(), 16);
-								Frame frame = new Frame(pointer, pointer + intValue);
+								Frame frame = new Frame(pointer, pointer + intValue - 1);
 								frames.Push(frame);
 								for (int i = 0; i < intValue; i++)
 								{
@@ -187,13 +190,15 @@ namespace SSofTool
 								{
 									if (stack.ContainsKey(pointer))
 									{
-										Console.WriteLine("pointer : " + pointer + " , c : " + c);
+										Console.WriteLine("bad pointer : " + pointer + " , c : " + c);
 									}else
 									{
-										stack.Add(pointer, c);
-									}
+										//Console.WriteLine("pointer : " + pointer + " , c : " + c);
 
-									pointer++;
+										stack.Add(pointer, c);
+										pointer++;
+
+									}
 								}
 								registers["rsp"] = (0xFFFFFFFF - pointer).ToString("X8");
 							}
@@ -222,7 +227,18 @@ namespace SSofTool
 											{
 												Frame frame = frames.First();
 												int i = frame.start + intValue - 1;
-												foreach (char c in instr.args[1].ToString().Substring(2))
+												int n = 0;
+												if (instr.args[1].ToString().First() == 'Q')
+												{
+													n = 8;
+												}
+												if (instr.args[1].ToString().First() == 'D')
+												{
+													n = 4;
+												}
+												string number = AutoComplete(instr.args[1].ToString().Substring(2), n);
+												Console.WriteLine("AQUI : " + number);
+												foreach (char c in number)
 												{
 													stack[i] = c;
 													i--;
@@ -331,9 +347,20 @@ namespace SSofTool
 									{
 										input = RandomString(bufflen);
 										Frame frame = frames.First();
+										Console.WriteLine("Frame end : " + frame.end);
+
 										for (int i = 0; i < bufflen; i++)
 										{
-											stack[frame.end - i] = input[i];
+											if (stack.ContainsKey(frame.end - i))
+											{
+												stack[frame.end - i] = input[i];
+												Console.WriteLine("line {0}, pointer {1}", instr.address, frame.end - i);
+
+											}
+											else
+											{
+												Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, frame.end - i);
+											}
 										}
 									}
 								}
@@ -349,9 +376,16 @@ namespace SSofTool
 									{
 										input = RandomString(bufflen);
 										Frame frame = frames.First();
+										Console.WriteLine("Frame end : " + frame.end);
 										for (int i = 0; i < bufflen; i++)
 										{
-											stack[frame.end - i] = input[i];
+											if (stack.ContainsKey(frame.end - i))
+											{
+												stack[frame.end - i] = input[i];
+											}else
+											{
+												Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, frame.end - i);
+											}
 										}
 									}
 								}
@@ -362,6 +396,7 @@ namespace SSofTool
 								name = instr.args[0].ToString().Trim('<', '>');
 								if (functions_dict.ContainsKey(name))
 								{
+									//pointer++;
 									stack.Concat(Stack(name));
 									frames.Pop();
 								}
