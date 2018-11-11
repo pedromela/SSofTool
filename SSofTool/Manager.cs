@@ -140,7 +140,10 @@ namespace SSofTool
 			foreach (Instruction instr in f.GetInstructions())
 			{
 				SetRip(instr);
-				//Console.WriteLine("rsp : " + registers["eax"]);
+				//Console.WriteLine("rsp : " + registers["rsp"]);
+				//Console.WriteLine("rbp : " + registers["rbp"]);
+				Console.WriteLine("{0}", instr.op);
+
 				switch (instr.op)
 				{
 					case "sub":
@@ -157,8 +160,11 @@ namespace SSofTool
 									stack.Add(pointer, '0');
 									pointer++;
 								}
+								//registers["rsp"] = (Convert.ToInt32(registers["rbp"], 16) - intValue).ToString("X8");
+								registers["rsp"] = (0xFFFFFFFF - pointer).ToString("X8");
+
 								//Console.WriteLine("limites: {0} - {1} ", frame.start, frame.end);
-                                //Console.WriteLine(pointer.ToString());
+								//Console.WriteLine((Convert.ToInt32(registers["rbp"],16) - intValue).ToString("X8"));
 							}
 						}
 						break;
@@ -304,7 +310,6 @@ namespace SSofTool
 						{
 							Console.WriteLine("This call makes no sense");
 						}
-						//Console.WriteLine("CALL : {0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
 
 						//fgets is dangerous, there's 3 arguments  that are put in registers before calling an fgets
 						//the buffer (LEA'd into register)
