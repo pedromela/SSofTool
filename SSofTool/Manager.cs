@@ -120,6 +120,53 @@ namespace SSofTool
 			return str;
 		}
 
+		private string GetString(string addr)
+		{
+			int addr_val = ParseAddr(addr);
+			string str = "";
+			while(stack.ContainsKey(addr_val))
+			{
+				if(stack[addr_val] != '#')
+				{
+					str += stack[addr_val];
+				}
+				else
+				{
+					break;
+				}
+				addr_val--;
+			}
+			return str;
+		}
+
+		public int ParseToPointer(string addr)
+		{
+			int len = addr.Length;
+			if (len == 8)
+			{
+			}
+			return 0xFFFFFFF - Convert.ToInt32(addr, 16);
+
+			//else if(len == 16) {
+			//	return Convert.ToInt64(addr, 16);
+			//}
+			return 0;
+		}
+
+		public int ParseAddr(string addr)
+		{
+			int len = addr.Length;
+			if (len == 8)
+			{
+			}
+			return Convert.ToInt32(addr, 16);
+
+			//else if(len == 16) {
+			//	return Convert.ToInt64(addr, 16);
+			//}
+			return 0;
+		}
+
 		public string ParseHex(string str, int size)
 		{
 			str = str.Trim();
@@ -439,11 +486,11 @@ namespace SSofTool
 									if (v != null)
 									{
 										int varmaxlen = v.bytes;
-										input = RandomString(bufflen);
+										input = GetString(input);
 										frame = frames.First();
 										Console.WriteLine("ARGS : " + instr.args[1]);
 										//int var_size = f.GetVariable().bytes;
-										for (int i = 0; i < bufflen; i++)
+										for (int i = 0; i < input.Length; i++)
 										{
 											if (i < varmaxlen)
 											{
