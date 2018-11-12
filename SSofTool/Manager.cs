@@ -35,6 +35,7 @@ namespace SSofTool
 		public void InitializeRegisters()
 		{
 			registers.Add("rdi", "00000000");
+			registers.Add("rsi", "00000000");
 			registers.Add("esi", "0000");
 			registers.Add("eax", "0000");
 			registers.Add("rax", "00000000");
@@ -120,18 +121,37 @@ namespace SSofTool
 			return str;
 		}
 
+
+		private string GetString(string addr, int n)
+		{
+			//Console.WriteLine("addr_Val : " + addr);
+			long addr_val = ParseToPointer(addr);
+			//Console.WriteLine("addr_Val : " + addr_val);
+			string str = "";
+			while (n > 0)
+			{
+				n--;
+				str += stack[(int) addr_val];
+				addr_val--;
+			}
+			return str;
+		}
+
 		private string GetString(string addr)
 		{
-			int addr_val = ParseAddr(addr);
+			//Console.WriteLine("addr_Val : " + addr);
+			long addr_val = ParseToPointer(addr);
+			//Console.WriteLine("addr_Val : " + addr_val);
 			string str = "";
-			while(stack.ContainsKey(addr_val))
+			while(stack.ContainsKey((int) addr_val)) // refatorizar tudo pra long , cast pra int temporario
 			{
-				if(stack[addr_val] != '#')
+				if(stack[(int)addr_val] != '#')
 				{
-					str += stack[addr_val];
+					str += stack[(int )addr_val];
 				}
 				else
 				{
+					str += stack[(int)addr_val];
 					break;
 				}
 				addr_val--;
@@ -139,13 +159,14 @@ namespace SSofTool
 			return str;
 		}
 
-		public int ParseToPointer(string addr)
+		public long ParseToPointer(string addr)
 		{
+
 			int len = addr.Length;
 			if (len == 8)
 			{
 			}
-			return 0xFFFFFFF - Convert.ToInt32(addr, 16);
+			return 0xFFFFFFFF - Convert.ToInt64(addr, 16);
 
 			//else if(len == 16) {
 			//	return Convert.ToInt64(addr, 16);
@@ -193,11 +214,13 @@ namespace SSofTool
 			foreach (Instruction instr in f.GetInstructions())
 			{
 				SetRip(instr);
-				//Console.WriteLine("rsp : " + registers["rsp"]);
-				//Console.WriteLine("rbp : " + registers["rbp"]);
+				//Console.WriteLine("rdx : " + registers["rdx"]);
+				//Console.WriteLine("rdi : " + registers["rdi"]);
+				Console.WriteLine("rbp : " + registers["rbp"]);
+				Console.WriteLine("rsp : " + registers["rsp"]);
 
 				Console.WriteLine("{0}", instr.op);
-				Console.WriteLine("{0}", pointer);
+				//Console.WriteLine("{0}", pointer);
 
 				switch (instr.op)
 				{
@@ -272,14 +295,15 @@ namespace SSofTool
 										string addr = x;
 										x = x.Trim('[', ']');
 										string[] args = x.Split('-');
-										if (args.Length == 2)
+										if (args.Length == 2) // do tipo rbp - x
 										{
+											//Console.WriteLine("buff1 addr: " + args[1]);
+
 											int intValue = Convert.ToInt32(args[1], 16);
-											if (!string.IsNullOrEmpty(instr.args[1].ToString()))
+											string value = instr.args[1].ToString();
+											if (!string.IsNullOrEmpty(value))
 											{
 												string reg = SubReg("rbp", intValue);
-												//Console.WriteLine("buff1 addr: " + addr);
-
 												if (f.HasVariable(x))
 												{
 													//Console.WriteLine("buff1 : " + reg);
@@ -294,17 +318,26 @@ namespace SSofTool
 												}
 												frame = frames.First();
 												int i = frame.start + intValue - 1;
-												int n = 0;
-												if (instr.args[1].ToString().First() == 'Q')
+
+												string ToWrite = "";
+
+												if (instr.args[1].ToString().StartsWith("0x"))
 												{
-													n = 8;
-												}
-												if (instr.args[1].ToString().First() == 'D')
+													int n = 0;
+													if (arg1.First() == 'Q')
+													{
+														n = 8;
+													}
+													if (arg1.First() == 'D')
+													{
+														n = 4;
+													}
+													ToWrite = AutoComplete(value.Substring(2), n);
+												} else if(registers.ContainsKey(value))
 												{
-													n = 4;
+													ToWrite = registers[value];
 												}
-												string number = AutoComplete(instr.args[1].ToString().Substring(2), n);
-												foreach (char c in number)
+												foreach (char c in ToWrite)
 												{
 													stack[i] = c;
 													i--;
@@ -341,20 +374,57 @@ namespace SSofTool
 												cstuff.Add(toks[1], toks[2]);
 											}
 										}
-										if(instr.args.Length == 2) // 2  args - > 
+										else if(instr.args.Length == 2) // 2  args 
 										{
+											string arg = instr.args[1].ToString();
 
+											string[] toks = instr.args[1].ToString().Split(' '); //arg.Split(' ');
 											string aux = ParseHex(instr.args[1].ToString(), r.Value.Length);
 
 											if (aux != null) //mov reg1, 0x00...
 											{
 												registers[r.Key] = aux;
 											}
+											else if(toks.Length == 3) // mov reg, WORD PTR [addr]
+											{
+												//string addr = arg1.Substring(4);
+												if (toks[2].First() == '[' && toks[2].Last() == ']') 
+												{
+
+													string addr = toks[2].Trim('[',']');
+													string[] args = addr.Split('-');
+
+													if (args.Length == 2) // 
+													{
+														int intValue = Convert.ToInt32(args[1].Substring(2), 16);
+														if (!string.IsNullOrEmpty(instr.args[1].ToString()))
+														{
+															string reg = SubReg(args[0], intValue);
+															//Console.WriteLine("buff1 addr: " + addr);
+															int n = 0;
+															if (toks[0].First() == 'Q')
+															{
+																n = 8;
+															}
+															else if (toks[0].First() == 'D')
+															{
+																n = 4;
+															}
+															//Console.WriteLine("mov {0}  , {1}", instr.args[0].ToString(), reg);
+															//Console.WriteLine("mov {0}  , {1}", instr.args[0].ToString()), instr.args[1].ToString());
+
+															registers[instr.args[0].ToString()] = reg;
+														}
+													}
+
+
+												}
+											}
 											else // mov reg1, reg2
 											{
 												foreach (var reg in registers)
 												{
-													if (instr.args[1].ToString().Equals(reg.Key))
+													if (arg.Equals(reg.Key))
 													{
 														registers[r.Key] = registers[reg.Key];
 														break;
@@ -387,7 +457,6 @@ namespace SSofTool
 								{
 									int intValue = Convert.ToInt32(split[1], 16); //Address starting from RBP to save
 									string reg = SubReg("rbp", intValue);
-									//Console.WriteLine("buff1 : " + x);
 									if (cstuff.ContainsKey(reg))
 									{
 										cstuff[reg] = x;
@@ -411,7 +480,7 @@ namespace SSofTool
 						{
 							Console.WriteLine("This call makes no sense");
 						}
-
+						Console.WriteLine(instr.args[0]);
 						//fgets is dangerous, there's 3 arguments  that are put in registers before calling an fgets
 						//the buffer (LEA'd into register)
 						//the buff_len (mov'd into register)
@@ -419,30 +488,30 @@ namespace SSofTool
 						string buffstart = registers["rdi"];
 						int bufflen = Convert.ToInt32(registers["esi"], 16);
 						string rip = registers["rip"];
-						string input = registers["rdx"];
+						string rdx = registers["rdx"];
+						string input;
+						Console.WriteLine("default functions input address: " + rdx);
 						switch (instr.args[0].ToString())
 						{
 							//case for dangerous function calls
 							case "<fgets@plt>":
-								if(cstuff.ContainsKey(input))
+								if(cstuff.ContainsKey(rdx))
 								{
 									//Console.WriteLine("input: " + cstuff[input]);
 
-									if (cstuff[input].Equals("<stdin@@GLIBC_2.2.5>"))
+									if (cstuff[rdx].Equals("<stdin@@GLIBC_2.2.5>"))
 									{
 										if (cstuff.ContainsKey(buffstart))
 										{
-											Console.WriteLine("buffstart : " + buffstart);
-											Console.WriteLine("cstuff[buffstart] : " + cstuff[buffstart]);
+											//Console.WriteLine("cstuff[buffstart] : " + cstuff[buffstart]);
 											Variable v = f.GetVariable(cstuff[buffstart]);
 											if (v != null)
 											{
 												int varmaxlen = v.bytes;
 												input = RandomString(bufflen);
 												frame = frames.First();
-												Console.WriteLine("ARGS : " + instr.args[1]);
-												//int var_size = f.GetVariable().bytes;
-												for (int i = 0; i < bufflen; i++)
+												int i;
+												for (i = 0; i < bufflen; i++)
 												{
 													if (i < varmaxlen)
 													{
@@ -459,9 +528,11 @@ namespace SSofTool
 													}
 													else
 													{
-														Console.WriteLine("OVERFLOW : CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, frame.end - i);
+														Console.WriteLine("OVERFLOW : fgets CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, frame.end - i);
 													}
 												}
+
+												stack[i < varmaxlen ? frame.end - i : frame.end - varmaxlen] = '#';
 											}else
 											{
 												Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
@@ -480,15 +551,18 @@ namespace SSofTool
 
 								if (cstuff.ContainsKey(buffstart))
 								{
-									Console.WriteLine("buffstart : " + buffstart);
-									Console.WriteLine("cstuff[buffstart] : " + cstuff[buffstart]);
+									//Console.WriteLine("buffstart : " + buffstart);
+									//Console.WriteLine("cstuff[buffstart] : " + cstuff[buffstart]);
+									//Console.WriteLine("input : " + input);
+
 									Variable v = f.GetVariable(cstuff[buffstart]);
 									if (v != null)
 									{
 										int varmaxlen = v.bytes;
-										input = GetString(input);
+										input = GetString(rdx);
 										frame = frames.First();
-										Console.WriteLine("ARGS : " + instr.args[1]);
+										//Console.WriteLine("frame end : " + frame.end +" , bytes : " + v.bytes);
+										Console.WriteLine("strcpy input : " + input);
 										//int var_size = f.GetVariable().bytes;
 										for (int i = 0; i < input.Length; i++)
 										{
@@ -507,7 +581,7 @@ namespace SSofTool
 											}
 											else
 											{
-												Console.WriteLine("OVERFLOW : CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, frame.end - i);
+												Console.WriteLine("OVERFLOW : strcpy CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, frame.end - i);
 											}
 										}
 									}

@@ -85,8 +85,8 @@ namespace SSofTool
 			ripLabel.Text = manager.GetRegister("rip");
 			foreach(var item in stack)
 			{
-				pars[0] = item.Key;
-				//pars[0] = (0xFFFFFFFF - item.Key).ToString("X8");
+				//pars[0] = item.Key;
+				pars[0] = (0xFFFFFFFF - item.Key).ToString("X8");
 				pars[1] = item.Value;
 				Stack.Rows.Add(pars);
 
