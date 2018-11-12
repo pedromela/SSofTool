@@ -141,7 +141,8 @@ namespace SSofTool
 		public Dictionary<int, char> Stack(string name)
 		{
 			Function f = functions_dict[name];
-			
+			Frame frame;
+
 			foreach (Instruction instr in f.GetInstructions())
 			{
 				SetRip(instr);
@@ -159,7 +160,7 @@ namespace SSofTool
 							if (instr.args[0].ToString().Equals("rsp"))
 							{
 								int intValue = Convert.ToInt32(instr.args[1].ToString(), 16);
-								Frame frame = new Frame(pointer, pointer + intValue - 1);
+								frame = new Frame(pointer, pointer + intValue - 1);
 								frames.Push(frame);
 								for (int i = 0; i < intValue; i++)
 								{
@@ -235,9 +236,16 @@ namespace SSofTool
 												if (f.HasVariable(x))
 												{
 													//Console.WriteLine("buff1 : " + reg);
-													cstuff.Add(reg, x);
+													if (cstuff.ContainsKey(reg))
+													{
+														cstuff[reg] = x;
+													}
+													else
+													{
+														cstuff.Add(reg, x);
+													}
 												}
-												Frame frame = frames.First();
+												frame = frames.First();
 												int i = frame.start + intValue - 1;
 												int n = 0;
 												if (instr.args[1].ToString().First() == 'Q')
@@ -332,7 +340,7 @@ namespace SSofTool
 								{
 									int intValue = Convert.ToInt32(split[1], 16); //Address starting from RBP to save
 									string reg = SubReg("rbp", intValue);
-									Console.WriteLine("buff1 : " + x);
+									//Console.WriteLine("buff1 : " + x);
 									if (cstuff.ContainsKey(reg))
 									{
 										cstuff[reg] = x;
@@ -384,7 +392,7 @@ namespace SSofTool
 											{
 												int varmaxlen = v.bytes;
 												input = RandomString(bufflen);
-												Frame frame = frames.First();
+												frame = frames.First();
 												Console.WriteLine("ARGS : " + instr.args[1]);
 												//int var_size = f.GetVariable().bytes;
 												for (int i = 0; i < bufflen; i++)
@@ -422,28 +430,49 @@ namespace SSofTool
 								break;
 							case "<strcpy@plt>":
 								//Console.WriteLine("{0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
-								if (cstuff.ContainsKey(input))
-								{
-									//Console.WriteLine("input: " + cstuff[input]);
 
-									if (cstuff[input].Equals("<stdin@@GLIBC_2.2.5>"))
+								if (cstuff.ContainsKey(buffstart))
+								{
+									Console.WriteLine("buffstart : " + buffstart);
+									Console.WriteLine("cstuff[buffstart] : " + cstuff[buffstart]);
+									Variable v = f.GetVariable(cstuff[buffstart]);
+									if (v != null)
 									{
+										int varmaxlen = v.bytes;
 										input = RandomString(bufflen);
-										Frame frame = frames.First();
-										//Console.WriteLine("Frame end : " + frame.end);
+										frame = frames.First();
+										Console.WriteLine("ARGS : " + instr.args[1]);
+										//int var_size = f.GetVariable().bytes;
 										for (int i = 0; i < bufflen; i++)
 										{
-											if (stack.ContainsKey(frame.end - i))
+											if (i < varmaxlen)
 											{
-												stack[frame.end - i] = input[i];
-											}else
+												if (stack.ContainsKey(frame.end - i))
+												{
+													stack[frame.end - i] = input[i];
+													//Console.WriteLine("line {0}, pointer {1}", instr.address, frame.end - i);
+
+												}
+												else
+												{
+													Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, frame.end - i);
+												}
+											}
+											else
 											{
-												Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, frame.end - i);
+												Console.WriteLine("OVERFLOW : CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, frame.end - i);
 											}
 										}
 									}
+									else
+									{
+										Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
+									}
 								}
-
+								else
+								{
+									Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
+								}
 								break;
 							default:
 								//Console.WriteLine("function : {0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
