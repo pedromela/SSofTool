@@ -230,11 +230,11 @@ namespace SSofTool
 											if (!string.IsNullOrEmpty(instr.args[1].ToString()))
 											{
 												string reg = SubReg("rbp", intValue);
-												Console.WriteLine("buff1 addr: " + addr);
+												//Console.WriteLine("buff1 addr: " + addr);
 
 												if (f.HasVariable(x))
 												{
-													Console.WriteLine("buff1 : " + reg);
+													//Console.WriteLine("buff1 : " + reg);
 													cstuff.Add(reg, x);
 												}
 												Frame frame = frames.First();
@@ -326,16 +326,29 @@ namespace SSofTool
                             string[] split = address.Split('-');
 
 							if (split.Length == 2 && split[0] == "rbp")
-                            {
-                                int intValue = Convert.ToInt32(split[1], 16); //Address starting from RBP to save
-								Console.WriteLine("buff2 : " + SubReg("rbp", intValue));
+                            {																			  //Console.WriteLine("buff2 : " + SubReg("rbp", intValue));
+								string x = args1.Trim('[', ']');
+								if (f.HasVariable(x))
+								{
+									int intValue = Convert.ToInt32(split[1], 16); //Address starting from RBP to save
+									string reg = SubReg("rbp", intValue);
+									Console.WriteLine("buff1 : " + x);
+									if (cstuff.ContainsKey(reg))
+									{
+										cstuff[reg] = x;
+									}
+									else
+									{
+										cstuff.Add(reg, x);
+									}
+									//Frame frame = frames.First();
+									registers[registername] = (Convert.ToInt32(registers["rbp"], 16) - intValue).ToString("X8");
+								}else
+								{
+									Console.WriteLine("lea : variable {0} doesnt exist.", x);
 
-								cstuff.Add(SubReg("rbp", intValue), args1.Trim('[',']'));
-								Frame frame = frames.First();
-                                registers[registername] = (Convert.ToInt32(registers["rbp"], 16) - intValue).ToString("X8");
-
-                                //Console.WriteLine("HELLO, REGISTER {0} CHARGED WITH ADDRESS {1}", registername, registers[registername]);
-                            }
+								}
+							}
                         }
 						break;
 					case "call":
@@ -391,13 +404,17 @@ namespace SSofTool
 													}
 													else
 													{
-														Console.WriteLine("CANT RIDE OUTSIDE VARIABLE BAUNDARIES: var {0}, pointer {1}", v.name, frame.end - i);
+														Console.WriteLine("OVERFLOW : CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, frame.end - i);
 													}
 												}
 											}else
 											{
 												Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
 											}
+										}
+										else
+										{
+											Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
 										}
 									}
 								}
