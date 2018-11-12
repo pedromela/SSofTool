@@ -112,7 +112,7 @@ namespace SSofTool
 			
 			if (string.IsNullOrEmpty(file))
 			{
-				LoadJson("test01.json");
+				LoadJson("test02.json");
 			}
 			else
 			{

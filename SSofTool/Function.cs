@@ -9,7 +9,7 @@ namespace SSofTool
 	class Function
 	{
 		public int Ninstructions;
-		private List<Variable> variables = new List<Variable>();
+		private Dictionary<string, Variable> variables = new Dictionary<string, Variable>();
 		private List<Instruction> instructions = new List<Instruction>();
 
 		public Function()
@@ -30,7 +30,7 @@ namespace SSofTool
 				var.type = vars[i]["type"].ToString();
 				var.name = vars[i]["name"].ToString();
 				var.address = vars[i]["address"].ToString();
-				variables.Add(var);
+				variables.Add(var.address, var);
 			}
 			var instrs = jObject["instructions"];
 			for (int i = 0; i < instrs.Count(); i++)
@@ -77,7 +77,39 @@ namespace SSofTool
             return instructions[i];
         }
 
-        public List<Variable> getVariables()
+		public string GetVariableAddr(string key)
+		{
+			if (variables.ContainsKey(key))
+			{
+				return variables[key].address;
+			}
+			return null;
+		}
+
+		public bool HasVariable(string address) {
+			if (variables.ContainsKey(address))
+				return true;
+			return false;
+		}
+		public int GetVariableBytes(string address)
+		{
+			if (variables.ContainsKey(address))
+			{
+				return variables[address].bytes;
+			}
+			return 0;
+		}
+
+		public Variable GetVariable(string address)
+		{
+			if (variables.ContainsKey(address))
+			{
+				return variables[address];
+			}
+			return null;
+		}
+
+		public Dictionary<string , Variable> GetVariables()
         {
             return variables;
         }

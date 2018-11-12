@@ -22,7 +22,7 @@ namespace SSofTool
 
 		public Manager()
 		{
-			cstuff = new Dictionary<string, string>(); 
+			cstuff = new Dictionary<string, string>(); // <address , value>
 			functions = new List<Function>();
 			functions_dict = new Dictionary<string, Function>();
             registers = new Dictionary<string, string>();
@@ -45,7 +45,7 @@ namespace SSofTool
 		}
 
 		private static Random random = new Random();
-		public static string RandomString(int length)
+		public string RandomString(int length)
 		{
 			const string chars = "0123456789ABCDEF";
 			return new string(Enumerable.Repeat(chars, length)
@@ -106,7 +106,7 @@ namespace SSofTool
 			registers["rip"] = AutoComplete(instr.address, 8);
 			//n_instructions++;
 		}
-		public string AutoComplete(string str, int size)
+		public static string AutoComplete(string str, int size)
 		{
 			int len = str.Length;
 			if(len < size)
@@ -132,6 +132,10 @@ namespace SSofTool
 			{
 				return null;
 			}
+		}
+		public string SubReg(string reg, int value)
+		{
+			return (Convert.ToInt32(registers[reg],16) - value).ToString("X8");
 		}
 
 		public Dictionary<int, char> Stack(string name)
@@ -212,12 +216,12 @@ namespace SSofTool
 							string[] tokens = arg1.Split(' ');
 							if (tokens.Length == 3)
 							{
-								if ((tokens[0].Substring(1) + tokens[1]).Equals("WORDPTR"))
+								if ((tokens[0].Substring(1) + tokens[1]).Equals("WORDPTR")) // caso em que o primeiro argumento é do tipo WORD PTR [addr]
 								{
 									string x = arg1.Substring(10);
 									if (x.Contains("rbp"))
 									{
-
+										string addr = x;
 										x = x.Trim('[', ']');
 										string[] args = x.Split('-');
 										if (args.Length == 2)
@@ -225,6 +229,14 @@ namespace SSofTool
 											int intValue = Convert.ToInt32(args[1], 16);
 											if (!string.IsNullOrEmpty(instr.args[1].ToString()))
 											{
+												string reg = SubReg("rbp", intValue);
+												Console.WriteLine("buff1 addr: " + addr);
+
+												if (f.HasVariable(x))
+												{
+													Console.WriteLine("buff1 : " + reg);
+													cstuff.Add(reg, x);
+												}
 												Frame frame = frames.First();
 												int i = frame.start + intValue - 1;
 												int n = 0;
@@ -247,13 +259,13 @@ namespace SSofTool
 									}
 								}
 							}
-							else
+							else // caso em que o primeiro argumento é um registo
 							{
 								foreach (var r in registers)
 								{
-									if (arg1.Equals(r.Key))
+									if (arg1.Equals(r.Key)) // achar o primeiro registo
 									{
-										if (instr.args.Length == 3)
+										if (instr.args.Length == 3) // 3 args -> tem comentario do tipo # 601040 <stdin@@GLIBC_2.2.5>
 										{
 											string[] toks = instr.args[2].ToString().Split(' ');
 											int n = 0;
@@ -274,16 +286,16 @@ namespace SSofTool
 												cstuff.Add(toks[1], toks[2]);
 											}
 										}
-										if(instr.args.Length == 2)
+										if(instr.args.Length == 2) // 2  args - > 
 										{
 
 											string aux = ParseHex(instr.args[1].ToString(), r.Value.Length);
 
-											if (aux != null)
+											if (aux != null) //mov reg1, 0x00...
 											{
 												registers[r.Key] = aux;
 											}
-											else
+											else // mov reg1, reg2
 											{
 												foreach (var reg in registers)
 												{
@@ -309,13 +321,19 @@ namespace SSofTool
                                 
                             string registername = instr.args[0].ToString(); //Register we're saving address in
                             string args1 = instr.args[1].ToString(); // Something in shape of [rbp-0x50]
+
                             string address = args1.Trim('[', ']'); // address = rbp-0x50
                             string[] split = address.Split('-');
-                            if (split.Length == 2 && split[0] == "rbp")
+
+							if (split.Length == 2 && split[0] == "rbp")
                             {
                                 int intValue = Convert.ToInt32(split[1], 16); //Address starting from RBP to save
-                                Frame frame = frames.First();
+								Console.WriteLine("buff2 : " + SubReg("rbp", intValue));
+
+								cstuff.Add(SubReg("rbp", intValue), args1.Trim('[',']'));
+								Frame frame = frames.First();
                                 registers[registername] = (Convert.ToInt32(registers["rbp"], 16) - intValue).ToString("X8");
+
                                 //Console.WriteLine("HELLO, REGISTER {0} CHARGED WITH ADDRESS {1}", registername, registers[registername]);
                             }
                         }
@@ -344,21 +362,41 @@ namespace SSofTool
 
 									if (cstuff[input].Equals("<stdin@@GLIBC_2.2.5>"))
 									{
-										input = RandomString(bufflen);
-										Frame frame = frames.First();
-										//Console.WriteLine("Frame end : " + frame.end);
-
-										for (int i = 0; i < bufflen; i++)
+										if (cstuff.ContainsKey(buffstart))
 										{
-											if (stack.ContainsKey(frame.end - i))
+											Console.WriteLine("buffstart : " + buffstart);
+											Console.WriteLine("cstuff[buffstart] : " + cstuff[buffstart]);
+											Variable v = f.GetVariable(cstuff[buffstart]);
+											if (v != null)
 											{
-												stack[frame.end - i] = input[i];
-												//Console.WriteLine("line {0}, pointer {1}", instr.address, frame.end - i);
+												int varmaxlen = v.bytes;
+												input = RandomString(bufflen);
+												Frame frame = frames.First();
+												Console.WriteLine("ARGS : " + instr.args[1]);
+												//int var_size = f.GetVariable().bytes;
+												for (int i = 0; i < bufflen; i++)
+												{
+													if (i < varmaxlen)
+													{
+														if (stack.ContainsKey(frame.end - i))
+														{
+															stack[frame.end - i] = input[i];
+															//Console.WriteLine("line {0}, pointer {1}", instr.address, frame.end - i);
 
-											}
-											else
+														}
+														else
+														{
+															Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, frame.end - i);
+														}
+													}
+													else
+													{
+														Console.WriteLine("CANT RIDE OUTSIDE VARIABLE BAUNDARIES: var {0}, pointer {1}", v.name, frame.end - i);
+													}
+												}
+											}else
 											{
-												Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, frame.end - i);
+												Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
 											}
 										}
 									}
