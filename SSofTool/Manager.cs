@@ -4,14 +4,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
+
+
 namespace SSofTool
 {
+
 	class Manager
 	{
 		private List<Function> functions;
 		private Dictionary<string, Function> functions_dict;
         private Dictionary<string,string> registers;
 		private Dictionary<string, string> cstuff;
+
+		private int DWORD = 4;
+
+
+		private int QWORD = 8;
 
 		public int n_instructions = 0;
 		
@@ -34,13 +43,13 @@ namespace SSofTool
 
 		public void InitializeRegisters()
 		{
-			registers.Add("rdi", "00000000");
-			registers.Add("rsi", "00000000");
-			registers.Add("esi", "0000");
-			registers.Add("eax", "0000");
-			registers.Add("rax", "00000000");
-			registers.Add("rdx", "00000000");
-			registers.Add("rip", "00000000");
+			registers.Add("rdi", "0000000000000000");
+			registers.Add("rsi", "0000000000000000");
+			registers.Add("esi", "00000000");
+			registers.Add("eax", "00000000");
+			registers.Add("rax", "0000000000000000");
+			registers.Add("rdx", "0000000000000000");
+			registers.Add("rip", "0000000000000000");
 			registers.Add("rbp", "FFFFFFFFFFFFFFFF");
 			registers.Add("rsp", "FFFFFFFFFFFFFFFF");
 		}
@@ -124,9 +133,11 @@ namespace SSofTool
 
 		private string GetString(string addr, int n)
 		{
-			//Console.WriteLine("addr_Val : " + addr);
-			long addr_val = ParseToPointer(addr);
-			//Console.WriteLine("addr_Val : " + addr_val);
+			Console.WriteLine("pointer : " + pointer);
+			Console.WriteLine("addr : " + addr);
+
+			ulong addr_val = ParseToPointer(addr);
+			Console.WriteLine("addr_Val : " + addr_val);
 			string str = "";
 			while (n > 0)
 			{
@@ -140,7 +151,7 @@ namespace SSofTool
 		private string GetString(string addr)
 		{
 			//Console.WriteLine("addr_Val : " + addr);
-			long addr_val = ParseToPointer(addr);
+			ulong addr_val = ParseToPointer(addr);
 			//Console.WriteLine("addr_Val : " + addr_val);
 			string str = "";
 			while(stack.ContainsKey((int) addr_val)) // refatorizar tudo pra long , cast pra int temporario
@@ -159,15 +170,19 @@ namespace SSofTool
 			return str;
 		}
 
-		public long ParseToPointer(string addr)
+		public ulong ParseToPointer(string addr)
 		{
 
 			int len = addr.Length;
 			if (len == 8)
 			{
-			}
-			return 0xFFFFFFFF - Convert.ToInt64(addr, 16);
+				return 0xFFFFFFFF - Convert.ToUInt32(addr, 16);
 
+			}
+			else if(len == 16)
+			{
+				return 0xFFFFFFFFFFFFFFFF - Convert.ToUInt64(addr, 16);
+			}
 			//else if(len == 16) {
 			//	return Convert.ToInt64(addr, 16);
 			//}
@@ -315,6 +330,7 @@ namespace SSofTool
 				Console.WriteLine("rdi : " + registers["rdi"]);
 				Console.WriteLine("rbp : " + registers["rbp"]);
 				Console.WriteLine("rsp : " + registers["rsp"]);
+				Console.WriteLine("POINTER : " + pointer);
 
 				Console.WriteLine("{0}", instr.op);
 				//Console.WriteLine("{0}", pointer);
@@ -378,10 +394,10 @@ namespace SSofTool
 									}
 								}
 							//registers[reg] = (0xFFFFFFFF - pointer).ToString("X8");
-							Console.WriteLine("PUSH: {0} , length: {1}", registers["rsp"], registers["rsp"].Length);
+							//Console.WriteLine("PUSH: {0} , length: {1}", registers["rsp"], registers["rsp"].Length);
 
-							registers["rsp"] = SubReg2("rsp" , registers["rsp"].Length); // actualizar rsp (stack pointer)
-							Console.WriteLine("PUSH: {0} ", SubReg2("rsp", registers["rsp"].Length));
+							registers["rsp"] = SubReg2("rsp" , len); // actualizar rsp (stack pointer)
+							//Console.WriteLine("PUSH: {0} ", SubReg2("rsp", registers["rsp"].Length));
 
 							//}
 						}
@@ -434,11 +450,11 @@ namespace SSofTool
 													int n = 0;
 													if (arg1.First() == 'Q')
 													{
-														n = 8;
+														n = QWORD;
 													}
 													if (arg1.First() == 'D')
 													{
-														n = 4;
+														n = DWORD;
 													}
 													ToWrite = HexToASCII(AutoComplete(value.Substring(2), n));
 													//Console.WriteLine("Adresss : " + AutoComplete(value.Substring(2), n));
@@ -472,11 +488,11 @@ namespace SSofTool
 											int n = 0;
 											if(instr.args[1].ToString().First() == 'Q')
 											{
-												n = 8;
+												n = QWORD;
 											}
 											if (instr.args[1].ToString().First() == 'D')
 											{
-												n = 4;
+												n = DWORD;
 											}
 											if (toks.Length == 3)
 											{
@@ -513,28 +529,27 @@ namespace SSofTool
 														int intValue = Convert.ToInt32(args[1].Substring(2), 16);
 														if (!string.IsNullOrEmpty(instr.args[1].ToString()))
 														{
-															string reg = SubReg(args[0], intValue);
+															string reg = SubReg2(args[0], intValue);
 															//Console.WriteLine("buff1 addr: " + addr);
 															int n = 0;
 															if (toks[0].First() == 'Q')
 															{
-																n = 8;
+																n = QWORD;
 															}
 															else if (toks[0].First() == 'D')
 															{
-																n = 4;
+																n = DWORD;
 															}
 															//Console.WriteLine("mov {0}  , {1}", instr.args[0].ToString(), reg);
 															//Console.WriteLine("mov {0}  , {1}", instr.args[0].ToString()), instr.args[1].ToString());
-
-															registers[instr.args[0].ToString()] = GetString(reg, 8);
+															Console.WriteLine("buff1 : {0} , {1} , {2}", addr, args[0], instr.args[0].ToString());
+															registers[instr.args[0].ToString()] = GetString(reg, n);
 															//cstuff.Add(GetString(reg, 8), addr);
-															Console.WriteLine("buff1 : {0} , {1} , {2}", GetString(reg, 8) , addr, registers[args[0]]);
 
 															if (f.HasVariable(addr))
 															{
 																
-																f.GetVariable(addr).stackAddr = GetString(reg, 8);
+																f.GetVariable(addr).stackAddr = GetString(reg, n);
 															
 															}
 
