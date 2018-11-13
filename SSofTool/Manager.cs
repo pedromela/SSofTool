@@ -267,34 +267,6 @@ namespace SSofTool
 			return string.Empty;
 		}
 
-
-		public static string ToHexString(string str)
-		{
-			var sb = new StringBuilder();
-
-			var bytes = Encoding.Unicode.GetBytes(str);
-			byte t_aux;
-			foreach (var t in bytes)
-			{
-				t_aux = 0x00FF;
-				t_aux += t;
-				sb.Append(t_aux.ToString("X2"));
-			}
-
-			return sb.ToString(); // returns: "48656C6C6F20776F726C64" for "Hello world"
-		}
-
-		public static string FromHexString(string hexString)
-		{
-			var bytes = new byte[hexString.Length / 2];
-			for (var i = 0; i < bytes.Length; i++)
-			{
-				bytes[i] = Convert.ToByte(hexString.Substring(i * 2, 2), 16);
-			}
-
-			return Encoding.ASCII.GetString(bytes); // returns: "Hello world" for "48656C6C6F20776F726C64"
-		}
-
 		public string SubReg(string reg, int value)
 		{
 			return (Convert.ToInt32(registers[reg],16) - value).ToString("X8");
@@ -303,18 +275,22 @@ namespace SSofTool
 		public string SubReg2(string reg, int value)
 		{
 			string addr_val = registers[reg];
-			Console.WriteLine("SubReg2 : {0}", addr_val.Length);
-			if (addr_val.Length == 8 || addr_val.Length == 4)
+			//Console.WriteLine("SubReg2 : {0}", addr_val.Length);
+			if (addr_val.Length == 8)
 			{
 				return (Convert.ToInt32(addr_val, 16) - value).ToString("X8");
 			}
 			else if (addr_val.Length == 16)
 			{
-				Console.WriteLine("SubReg CASE 16 : {0}", addr_val.Length);
+				//Console.WriteLine("SubReg CASE 16 : {0}", addr_val.Length);
 
 				return (Convert.ToInt64(addr_val, 16) - value).ToString("X16");
 			}
-			Console.WriteLine("SubReg2 : {0}", new String('0', addr_val.Length));
+			else if (addr_val.Length == 16)
+			{
+				return (Convert.ToInt16(addr_val, 16) - value).ToString("X4");
+			}
+			//Console.WriteLine("SubReg2 : {0}", new String('0', addr_val.Length));
 			return new String('0', addr_val.Length);
 		}
 
@@ -326,14 +302,12 @@ namespace SSofTool
 			foreach (Instruction instr in f.GetInstructions())
 			{
 				SetRip(instr);
-				Console.WriteLine("rdx : " + registers["rdx"]);
-				Console.WriteLine("rdi : " + registers["rdi"]);
-				Console.WriteLine("rbp : " + registers["rbp"]);
-				Console.WriteLine("rsp : " + registers["rsp"]);
-				Console.WriteLine("POINTER : " + pointer);
-
 				Console.WriteLine("{0}", instr.op);
-				//Console.WriteLine("{0}", pointer);
+				Console.WriteLine("rdx : " + registers["rdx"]);
+				//Console.WriteLine("rdi : " + registers["rdi"]);
+				Console.WriteLine("rbp : " + registers["rbp"]);
+				//Console.WriteLine("rsp : " + registers["rsp"]);
+				Console.WriteLine("POINTER : " + pointer);
 
 				switch (instr.op)
 				{
@@ -458,13 +432,13 @@ namespace SSofTool
 													}
 													ToWrite = HexToASCII(AutoComplete(value.Substring(2), n));
 													//Console.WriteLine("Adresss : " + AutoComplete(value.Substring(2), n));
-													Console.WriteLine("ToWrite : " + ToWrite);
-													Console.WriteLine("ToWrite : " + ASCIIToHex(ToWrite));
+													//Console.WriteLine("ToWrite : " + ToWrite);
+													//Console.WriteLine("ToWrite : " + ASCIIToHex(ToWrite));
 												}
 												else if(registers.ContainsKey(value))
 												{
-													Console.WriteLine("WRITING : "+ registers[value]);
-													ToWrite = registers[value];
+													//Console.WriteLine("WRITING : "+ registers[value]);
+													ToWrite = HexToASCII(registers[value]);
 												}
 												foreach (char c in ToWrite)
 												{
@@ -542,15 +516,15 @@ namespace SSofTool
 															}
 															//Console.WriteLine("mov {0}  , {1}", instr.args[0].ToString(), reg);
 															//Console.WriteLine("mov {0}  , {1}", instr.args[0].ToString()), instr.args[1].ToString());
-															Console.WriteLine("buff1 : {0} , {1} , {2}", addr, args[0], instr.args[0].ToString());
-															registers[instr.args[0].ToString()] = GetString(reg, n);
-															//cstuff.Add(GetString(reg, 8), addr);
+															registers[instr.args[0].ToString()] = ASCIIToHex(GetString(reg, n));
+															Console.WriteLine("buff1 : {0} , {1} , {2}", addr, args[0], registers[instr.args[0].ToString()]);
 
 															if (f.HasVariable(addr))
 															{
 																
 																f.GetVariable(addr).stackAddr = GetString(reg, n);
-															
+																//cstuff.Add(GetString(reg, 8), addr);
+
 															}
 
 														}
