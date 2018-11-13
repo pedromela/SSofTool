@@ -608,7 +608,67 @@ namespace SSofTool
 									Console.WriteLine("CANT FIND VARIABLE: var {0}", rdx);
 								}
 								break;
-							default:
+                            case "<gets@plt>":
+                                //gets assumes everything in the stack can be overwritten
+                                //cstuff has addresses in registers, and the rbp-x as value
+                                Console.WriteLine("GETS");
+                                Variable vg = f.GetVariable(cstuff[buffstart]);
+                                List<string> overflown = new List<string>();
+                                string address;
+                                overflown.Add(vg.name);
+                                // checka o RDI para ter o buffstart
+                                if (cstuff.ContainsKey(buffstart))
+                                {
+                                    int i = 4;
+                                    Console.WriteLine("bufferstart - " + buffstart); //address do buffer no registo rdi
+                                    Console.WriteLine("cstuff[bufferstart] - " + cstuff[buffstart]); // vai buscar o rbp - x onde começa o buffer
+                                    //anda pela stack de 4 em 4 e procura vars declaradas, quando encontra um endereço que não é key de cstuff já ñ há mais vars.
+                                    while (i < pointer)
+                                    {
+                                        address = SubReg("rbp", i);
+                                        if (cstuff.ContainsKey(address))
+                                        {
+                                            Variable var = f.GetVariable(cstuff[address]);
+                                            if (var != null)
+                                            {
+                                                i += 4;
+                                                overflown.Add(var.name);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                        //i += 4;
+                                    }
+                                    if (vg != null)
+                                    {
+                                        //EVERYTHING HIGHER UP IN THE STACK THAN BUFFSTART ADDRESS CAN BE OVERWRITTEN
+                                        //VAROVERFLOW
+                                        Console.WriteLine("fname: gets " + " vuln_function: main " + " vulnurability: VAROVERFLOW");
+                                        foreach (string s in overflown)
+                                        {
+                                            Console.WriteLine("overflown_var: " + s);
+                                        }
+                                        //FINDING THE FIRST ADDRESS TO BE OVERWRITTEN
+                                        int vglen = vg.bytes;
+                                        string[] split = cstuff[buffstart].Split('-');
+                                        string offset = split[1];
+                                        int intValue = Convert.ToInt32(offset, 16);
+                                        frame = frames.First();
+                                        int sc = frame.start + intValue - 1;
+                                        for (i = 0; i < vglen; i++)
+                                        {
+                                            stack[sc] = '$';
+                                            Console.WriteLine(i.ToString());
+                                            sc -= 1;
+                                        }
+                                        Console.WriteLine("overflown_address: rbp-0x" + (sc - frame.start + 1).ToString("X8"));
+
+                                    }
+                                }
+                                break;
+                            default:
 								//Console.WriteLine("function : {0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
 								name = instr.args[0].ToString().Trim('<', '>');
 								if (functions_dict.ContainsKey(name))
