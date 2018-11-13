@@ -83,14 +83,19 @@ namespace SSofTool
 			object[] pars = { "av", "ac" };
 			Dictionary<int, char> stack = manager.Stack("main");
 			ripLabel.Text = manager.GetRegister("rip");
-			foreach(var item in stack)
-			{
-				//pars[0] = item.Key;
-				pars[0] = (0xFFFFFFFF - item.Key).ToString("X8");
-				pars[1] = item.Value;
+			int pointer = 0;
+			for(pointer = 0; stack.ContainsKey(pointer); pointer++) {
+				pars[0] = (0xFFFFFFFF - pointer).ToString("X8");
+				pars[1] = stack[pointer];
 				Stack.Rows.Add(pars);
-
 			}
+			//foreach (var item in stack)
+			//{
+			//	//pars[0] = item.Key;
+			//	pars[0] = (0xFFFFFFFF - item.Key).ToString("X8");
+			//	pars[1] = item.Value;
+			//	Stack.Rows.Add(pars);
+			//}
 		}
 
 		private void Clear()

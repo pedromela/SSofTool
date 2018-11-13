@@ -41,8 +41,8 @@ namespace SSofTool
 			registers.Add("rax", "00000000");
 			registers.Add("rdx", "00000000");
 			registers.Add("rip", "00000000");
-			registers.Add("rbp", "FFFFFFFF");
-			registers.Add("rsp", "FFFFFFFF");
+			registers.Add("rbp", "FFFFFFFFFFFFFFFF");
+			registers.Add("rsp", "FFFFFFFFFFFFFFFF");
 		}
 
 		private static Random random = new Random();
@@ -201,9 +201,106 @@ namespace SSofTool
 				return null;
 			}
 		}
+
+		public static string HexToASCII(String hexString)
+		{
+			try
+			{
+				string ascii = string.Empty;
+				int offset = 255;
+				for (int i = 0; i < hexString.Length; i += 2)
+				{
+					String hs = string.Empty;
+
+					hs = hexString.Substring(i, 2);
+					uint decval = Convert.ToUInt32(hs, 16);
+					char character = (char) (decval + offset);
+					//Console.WriteLine("char : " + character);
+					ascii += character;
+
+				}
+
+				return ascii;
+			}
+			catch (Exception ex) { Console.WriteLine("HexToString exception : " + ex.Message); }
+
+			return string.Empty;
+		}
+
+		public static string ASCIIToHex(String String)
+		{
+			try
+			{
+				int offset = 255;
+
+				string hex = string.Empty;
+
+				for (int i = 0; i < String.Length; i++)
+				{
+					String hs = string.Empty;
+
+					int c = (int)String[i] - offset;
+
+					hex += c.ToString("X2");
+
+				}
+
+				return hex;
+			}
+			catch (Exception ex) { Console.WriteLine("HexToString exception : " + ex.Message); }
+
+			return string.Empty;
+		}
+
+
+		public static string ToHexString(string str)
+		{
+			var sb = new StringBuilder();
+
+			var bytes = Encoding.Unicode.GetBytes(str);
+			byte t_aux;
+			foreach (var t in bytes)
+			{
+				t_aux = 0x00FF;
+				t_aux += t;
+				sb.Append(t_aux.ToString("X2"));
+			}
+
+			return sb.ToString(); // returns: "48656C6C6F20776F726C64" for "Hello world"
+		}
+
+		public static string FromHexString(string hexString)
+		{
+			var bytes = new byte[hexString.Length / 2];
+			for (var i = 0; i < bytes.Length; i++)
+			{
+				bytes[i] = Convert.ToByte(hexString.Substring(i * 2, 2), 16);
+			}
+
+			return Encoding.ASCII.GetString(bytes); // returns: "Hello world" for "48656C6C6F20776F726C64"
+		}
+
 		public string SubReg(string reg, int value)
 		{
 			return (Convert.ToInt32(registers[reg],16) - value).ToString("X8");
+		}
+
+		public string SubReg2(string reg, int value)
+		{
+			string addr_val = registers[reg];
+			Console.WriteLine("SubReg2 : {0}", addr_val.Length);
+			if (addr_val.Length == 8 || addr_val.Length == 4)
+			{
+				return (Convert.ToInt32(addr_val, 16) - value).ToString("X8");
+			}
+			else if (addr_val.Length == 16)
+			{
+				Console.WriteLine("SubReg CASE 16 : {0}", addr_val.Length);
+
+				return (Convert.ToInt64(addr_val, 16) - value).ToString("X16");
+			}
+			Console.WriteLine("SubReg2 : {0}", new String('0', addr_val.Length));
+			return new String('0', addr_val.Length);
 		}
 
 		public Dictionary<int, char> Stack(string name)
@@ -227,8 +324,9 @@ namespace SSofTool
 					case "sub":
 						if(instr.args.Length == 2)
 						{
-							if (instr.args[0].ToString().Equals("rsp"))
-							{
+							string reg = instr.args[0].ToString();
+							//if (reg.Equals("rsp"))
+							//{
 								int intValue = Convert.ToInt32(instr.args[1].ToString(), 16);
 								frame = new Frame(pointer, pointer + intValue - 1);
 								frames.Push(frame);
@@ -239,11 +337,12 @@ namespace SSofTool
 									pointer++;
 								}
 								//registers["rsp"] = (Convert.ToInt32(registers["rbp"], 16) - intValue).ToString("X8");
-								registers["rsp"] = (0xFFFFFFFF - pointer).ToString("X8");
+								registers[reg] = SubReg2(reg, intValue);
+							Console.WriteLine("SUB: {0} ", registers[reg]);
 
-								//Console.WriteLine("limites: {0} - {1} ", frame.start, frame.end);
-								//Console.WriteLine((Convert.ToInt32(registers["rbp"],16) - intValue).ToString("X8"));
-							}
+							//Console.WriteLine("limites: {0} - {1} ", frame.start, frame.end);
+							//Console.WriteLine((Convert.ToInt32(registers["rbp"],16) - intValue).ToString("X8"));
+							//}
 						}
 						break;
 					case "push":
@@ -251,32 +350,40 @@ namespace SSofTool
 						int l = instr.args.Length;
 						if(l == 1)
 						{
-							string value = instr.args[0].ToString();
-							if (value.Equals("rbp"))
-							{
-								int len = registers["rbp"].Length;
-								while (len != 8)
+							string reg = instr.args[0].ToString();
+							//if (value.Equals("rbp"))
+							//{
+								string ToWrite = HexToASCII(registers[reg]);
+								int len = ToWrite.Length;
+							//while (len != 8)
+							//{
+							//	stack.Add(pointer, '0');
+							//	pointer++;
+							//	len++;
+							//}
+							int i = pointer + len -1;
+								foreach (char c in ToWrite)
 								{
-									stack.Add(pointer, '0');
-									pointer++;
-									len++;
-								}
-								foreach (char c in registers["rbp"])
-								{
-									if (stack.ContainsKey(pointer))
+									if (stack.ContainsKey(i))
 									{
 										Console.WriteLine("bad pointer : " + pointer + " , c : " + c);
 									}else
 									{
 										//Console.WriteLine("pointer : " + pointer + " , c : " + c);
 
-										stack.Add(pointer, c);
+										stack.Add(i, c);
 										pointer++;
+										i--;
 
 									}
 								}
-								registers["rsp"] = (0xFFFFFFFF - pointer).ToString("X8");
-							}
+							//registers[reg] = (0xFFFFFFFF - pointer).ToString("X8");
+							Console.WriteLine("PUSH: {0} , length: {1}", registers["rsp"], registers["rsp"].Length);
+
+							registers["rsp"] = SubReg2("rsp" , registers["rsp"].Length); // actualizar rsp (stack pointer)
+							Console.WriteLine("PUSH: {0} ", SubReg2("rsp", registers["rsp"].Length));
+
+							//}
 						}
 						break;
 					case "mov":
@@ -303,7 +410,7 @@ namespace SSofTool
 											string value = instr.args[1].ToString();
 											if (!string.IsNullOrEmpty(value))
 											{
-												string reg = SubReg("rbp", intValue);
+												string reg = SubReg2("rbp", intValue);
 												if (f.HasVariable(x))
 												{
 													f.GetVariable(x).stackAddr = reg;
@@ -333,8 +440,12 @@ namespace SSofTool
 													{
 														n = 4;
 													}
-													ToWrite = AutoComplete(value.Substring(2), n);
-												} else if(registers.ContainsKey(value))
+													ToWrite = HexToASCII(AutoComplete(value.Substring(2), n));
+													//Console.WriteLine("Adresss : " + AutoComplete(value.Substring(2), n));
+													Console.WriteLine("ToWrite : " + ToWrite);
+													Console.WriteLine("ToWrite : " + ASCIIToHex(ToWrite));
+												}
+												else if(registers.ContainsKey(value))
 												{
 													Console.WriteLine("WRITING : "+ registers[value]);
 													ToWrite = registers[value];
@@ -469,7 +580,7 @@ namespace SSofTool
 								if (f.HasVariable(x))
 								{
 									int intValue = Convert.ToInt32(split[1], 16); //Address starting from RBP to save
-									string reg = SubReg("rbp", intValue);
+									string reg = SubReg2("rbp", intValue);
 									if (cstuff.ContainsKey(reg))
 									{
 										cstuff[reg] = x;
@@ -479,7 +590,8 @@ namespace SSofTool
 										cstuff.Add(reg, x);
 									}
 									//Frame frame = frames.First();
-									registers[registername] = (Convert.ToInt32(registers["rbp"], 16) - intValue).ToString("X8");
+									registers[registername] = SubReg2("rbp", intValue);
+									//registers[registername] = (Convert.ToInt32(registers["rbp"], 16) - intValue).ToString("X8");
 								}else
 								{
 									Console.WriteLine("lea : variable {0} doesnt exist.", x);
