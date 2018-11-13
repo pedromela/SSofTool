@@ -214,8 +214,8 @@ namespace SSofTool
 			foreach (Instruction instr in f.GetInstructions())
 			{
 				SetRip(instr);
-				//Console.WriteLine("rdx : " + registers["rdx"]);
-				//Console.WriteLine("rdi : " + registers["rdi"]);
+				Console.WriteLine("rdx : " + registers["rdx"]);
+				Console.WriteLine("rdi : " + registers["rdi"]);
 				Console.WriteLine("rbp : " + registers["rbp"]);
 				Console.WriteLine("rsp : " + registers["rsp"]);
 
@@ -295,7 +295,7 @@ namespace SSofTool
 										string addr = x;
 										x = x.Trim('[', ']');
 										string[] args = x.Split('-');
-										if (args.Length == 2) // do tipo rbp - x
+										if (args.Length == 2) // addr do tipo rbp - x
 										{
 											//Console.WriteLine("buff1 addr: " + args[1]);
 
@@ -306,6 +306,7 @@ namespace SSofTool
 												string reg = SubReg("rbp", intValue);
 												if (f.HasVariable(x))
 												{
+													f.GetVariable(x).stackAddr = reg;
 													//Console.WriteLine("buff1 : " + reg);
 													if (cstuff.ContainsKey(reg))
 													{
@@ -317,7 +318,7 @@ namespace SSofTool
 													}
 												}
 												frame = frames.First();
-												int i = frame.start + intValue - 1;
+												int i = frame.start + intValue;
 
 												string ToWrite = "";
 
@@ -335,6 +336,7 @@ namespace SSofTool
 													ToWrite = AutoComplete(value.Substring(2), n);
 												} else if(registers.ContainsKey(value))
 												{
+													Console.WriteLine("WRITING : "+ registers[value]);
 													ToWrite = registers[value];
 												}
 												foreach (char c in ToWrite)
@@ -372,6 +374,7 @@ namespace SSofTool
 												
 												registers[r.Key] = toks[1];
 												cstuff.Add(toks[1], toks[2]);
+										
 											}
 										}
 										else if(instr.args.Length == 2) // 2  args 
@@ -413,7 +416,17 @@ namespace SSofTool
 															//Console.WriteLine("mov {0}  , {1}", instr.args[0].ToString(), reg);
 															//Console.WriteLine("mov {0}  , {1}", instr.args[0].ToString()), instr.args[1].ToString());
 
-															registers[instr.args[0].ToString()] = reg;
+															registers[instr.args[0].ToString()] = GetString(reg, 8);
+															//cstuff.Add(GetString(reg, 8), addr);
+															Console.WriteLine("buff1 : {0} , {1} , {2}", GetString(reg, 8) , addr, registers[args[0]]);
+
+															if (f.HasVariable(addr))
+															{
+																
+																f.GetVariable(addr).stackAddr = GetString(reg, 8);
+															
+															}
+
 														}
 													}
 
@@ -548,8 +561,8 @@ namespace SSofTool
 								break;
 							case "<strcpy@plt>":
 								//Console.WriteLine("{0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
-
-								if (cstuff.ContainsKey(buffstart))
+								
+								if (cstuff.ContainsKey(buffstart) && cstuff.ContainsKey(rdx))
 								{
 									//Console.WriteLine("buffstart : " + buffstart);
 									//Console.WriteLine("cstuff[buffstart] : " + cstuff[buffstart]);
@@ -561,8 +574,8 @@ namespace SSofTool
 										int varmaxlen = v.bytes;
 										input = GetString(rdx);
 										frame = frames.First();
-										//Console.WriteLine("frame end : " + frame.end +" , bytes : " + v.bytes);
-										Console.WriteLine("strcpy input : " + input);
+										Console.WriteLine("frame end : " + frame.end +" , bytes : " + v.bytes);
+										Console.WriteLine("strcpy input : " + input + ", address : "+ rdx);
 										//int var_size = f.GetVariable().bytes;
 										for (int i = 0; i < input.Length; i++)
 										{
@@ -592,7 +605,7 @@ namespace SSofTool
 								}
 								else
 								{
-									Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
+									Console.WriteLine("CANT FIND VARIABLE: var {0}", rdx);
 								}
 								break;
 							default:

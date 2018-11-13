@@ -12,6 +12,7 @@ namespace SSofTool
 		public string type;
 		public string name;
 		public string address;
+		public string stackAddr;
 
 		public Variable() { }
 		public Variable(int _bytes, string _type, string _name, string _address) {

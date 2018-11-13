@@ -10,7 +10,7 @@ namespace SSofTool
 	{
 		public int start;
 		public int end;
-
+		//public 
 		public Frame()
 		{
 
