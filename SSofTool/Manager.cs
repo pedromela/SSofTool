@@ -151,7 +151,7 @@ namespace SSofTool
 		private string GetString(string addr)
 		{
 			//Console.WriteLine("addr_Val : " + addr);
-			ulong addr_val = ParseToPointer(addr);
+			ulong addr_val = ParseToPointer(addr) - 1;
 			//Console.WriteLine("addr_Val : " + addr_val);
 			string str = "";
 			while(stack.ContainsKey((int) addr_val)) // refatorizar tudo pra long , cast pra int temporario
@@ -343,30 +343,30 @@ namespace SSofTool
 							string reg = instr.args[0].ToString();
 							//if (value.Equals("rbp"))
 							//{
-								string ToWrite = HexToASCII(registers[reg]);
-								int len = ToWrite.Length;
+							string ToWrite = HexToASCII(registers[reg]);
+							int len = ToWrite.Length;
 							//while (len != 8)
 							//{
 							//	stack.Add(pointer, '0');
 							//	pointer++;
 							//	len++;
 							//}
-							int i = pointer + len -1;
-								foreach (char c in ToWrite)
+							int i = pointer + len -	1;
+							foreach (char c in ToWrite)
+							{
+								if (stack.ContainsKey(i))
 								{
-									if (stack.ContainsKey(i))
-									{
-										Console.WriteLine("bad pointer : " + pointer + " , c : " + c);
-									}else
-									{
-										//Console.WriteLine("pointer : " + pointer + " , c : " + c);
+									Console.WriteLine("bad pointer : " + pointer + " , c : " + c);
+								}else
+								{
+									//Console.WriteLine("pointer : " + pointer + " , c : " + c);
 
-										stack.Add(i, c);
-										pointer++;
-										i--;
+									stack.Add(i, c);
+									pointer++;
+									i--;
 
-									}
 								}
+							}
 							//registers[reg] = (0xFFFFFFFF - pointer).ToString("X8");
 							//Console.WriteLine("PUSH: {0} , length: {1}", registers["rsp"], registers["rsp"].Length);
 
@@ -415,7 +415,7 @@ namespace SSofTool
 													}
 												}
 												frame = frames.First();
-												int i = frame.start + intValue;
+												int i = (int)ParseToPointer(reg) -1;
 
 												string ToWrite = "";
 
@@ -474,7 +474,7 @@ namespace SSofTool
 												toks[1] = AutoComplete(toks[1], n);
 												
 												registers[r.Key] = toks[1];
-												cstuff.Add(toks[1], toks[2]);
+												cstuff.Add(toks[1], toks[2]); 
 										
 											}
 										}
@@ -503,7 +503,7 @@ namespace SSofTool
 														int intValue = Convert.ToInt32(args[1].Substring(2), 16);
 														if (!string.IsNullOrEmpty(instr.args[1].ToString()))
 														{
-															string reg = SubReg2(args[0], intValue);
+															string reg = SubReg2(args[0], intValue-1);
 															//Console.WriteLine("buff1 addr: " + addr);
 															int n = 0;
 															if (toks[0].First() == 'Q')
@@ -519,13 +519,13 @@ namespace SSofTool
 															registers[instr.args[0].ToString()] = ASCIIToHex(GetString(reg, n));
 															Console.WriteLine("buff1 : {0} , {1} , {2}", addr, args[0], registers[instr.args[0].ToString()]);
 
-															if (f.HasVariable(addr))
-															{
+															//if (f.HasVariable(addr))
+															//{
 																
-																f.GetVariable(addr).stackAddr = GetString(reg, n);
-																//cstuff.Add(GetString(reg, 8), addr);
+															//	f.GetVariable(addr).stackAddr = registers[instr.args[0].ToString()];
+															//	//cstuff.Add(GetString(reg, 8), addr);
 
-															}
+															//}
 
 														}
 													}
@@ -625,28 +625,29 @@ namespace SSofTool
 												input = RandomString(bufflen);
 												frame = frames.First();
 												int i;
+												int start =(int) ParseToPointer(buffstart);
 												for (i = 0; i < bufflen; i++)
 												{
-													if (i < varmaxlen)
+													if (i < varmaxlen || i > frame.end)
 													{
-														if (stack.ContainsKey(frame.end - i))
+														if (stack.ContainsKey(start - i))
 														{
-															stack[frame.end - i] = input[i];
+															stack[start - i] = input[i];
 															//Console.WriteLine("line {0}, pointer {1}", instr.address, frame.end - i);
 
 														}
 														else
 														{
-															Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, frame.end - i);
+															Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, start - i);
 														}
 													}
 													else
 													{
-														Console.WriteLine("OVERFLOW : fgets CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, frame.end - i);
+														Console.WriteLine("OVERFLOW : fgets CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, start - i);
 													}
 												}
 
-												stack[i < varmaxlen ? frame.end - i : frame.end - varmaxlen] = '#';
+												stack[i < varmaxlen ? start - i : start - varmaxlen] = '#';
 											}else
 											{
 												Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
