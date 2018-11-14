@@ -62,6 +62,21 @@ namespace SSofTool
 			  .Select(s => s[random.Next(s.Length)]).ToArray());
 		}
 
+		public string InputString(int length)
+		{
+			const string RawInput = @"Lorem ipsum dolor sit amet, vis et nulla suscipiantur, no sea etiam alterum percipit. Mutat placerat fabellas ne eum, ex per putent deleniti, no accusata atomorum eos. Et quo convenire rationibus, per ne impetus volumus appetere, at eos quis delectus ullamcorper. Tollit legere aliquam ea eam.
+Hinc error volutpat pri ea, sit ei persius propriae salutatus.Debet impetus civibus id sea, qui ut quod inciderint. Labore dictas delicata eu sea, nusquam contentiones mei ad, natum tamquam nec cu.Augue falli ceteros ex usu.Ex duo dolor comprehensam. Nam impetus periculis at, usu no legendos atomorum, id justo disputando sea.
+Placerat accusamus te nam, usu accusata scripserit cu, cu usu putant intellegat. Ut choro sensibus oportere pro, nobis putant prompta ad eos.An aeterno nominavi ullamcorper per, appareat voluptaria qui cu. Ex dico dicunt deleniti nec, nullam platonem vituperata no vel, cu diam facilisis nam. Impetus tritani vix an.
+Saperet fabellas ea est, ad postea sapientem consequat mel, nam id nibh assum.Ad eum iudicabit mediocritatem, no dicunt prodesset sed, quo cu mazim soleat. Te per viris percipit complectitur.Affert putent aliquid qui ad, solet maiorum principes an pro, ius no albucius dissentiunt. In est possit dolorum gubergren.Vel insolens persecuti definiebas ea, soleat convenire nec et.
+Usu ex temporibus signiferumque. Te suas lucilius cum, mea dolores albucius at.Eum ad deserunt disputationi, eum ex adhuc scripserit, te alii laudem graeci quo.Ius ne everti fabulas consectetuer, qui quot dolore animal eu.Cum eu eros postea, ea pri tota commune.Usu dicta error ea.
+Sed assum dolore delectus eu, nam eu esse periculis voluptaria, usu probo scribentur persequeris no.Utamur suscipit tincidunt eos no.Vel ad ancillae tacimates, sea veri invenire et.Platonem erroribus ne est, in eum ceteros commune.
+Ne vis esse eirmod blandit, ei per numquam recusabo. Eu nam tantas repudiare, prompta impedit tractatos eu sed. Sit ex dicant moderatius, eirmod habemus nec at.Probo aperiri accusata ad vel, ei iusto affert theophrastus eam, debet gloriatur eloquentiam ei vim.Dicunt patrioque vituperatoribus ea cum, ea novum exerci assueverit duo.Purto magna te his. Vero salutandi per ea, delicata argumentum pri at.
+Eum summo labitur no, vim meis qualisque eloquentiam ex. Solet argumentum interesset eu sea.Aperiri scaevola est no. Utroque epicurei consequat no pri, qui nisl brute homero id.
+Pro at saepe primis, nam illud dicta albucius cu, animal labores eam an.Pro quod essent laoreet eu, vis movet praesent cu. Ut qui solum possim convenire, mel atqui tantas tempor cu.Eu pri congue nominati accusamus.Vim ex prima dolor, omnesque intellegam in duo, accusam interpretaris eam cu. Tollit voluptatum theophrastus vis ad.
+Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusamus mea. Partem intellegam in vim.Soluta numquam invenire eu pro, tantas adversarium mea no. Rebum hendrerit cotidieque ne ius, wisi veritus mediocrem eu usu.Option inimicus eos in, at erant accusam assentior mel.";
+			return RawInput.Substring(0, length);
+		}
+
 		public void AddFunction(string name, Function f)
 		{
 			functions_dict.Add(name, f);
@@ -414,6 +429,25 @@ namespace SSofTool
 														cstuff.Add(reg, x);
 													}
 												}
+
+												//if (f.HasVariable(x))
+												//{
+												//	f.GetVariable(x).stackAddr = reg;
+
+												//}
+												//else
+												//{
+												//	if (cstuff.ContainsKey(reg))
+												//	{
+												//		Console.WriteLine("SOULDNT BE DONE! : " + reg);
+												//		cstuff[reg] = x;
+												//	}
+												//	else
+												//	{
+												//		cstuff.Add(reg, x);
+												//	}
+
+												//}
 												frame = frames.First();
 												int i = (int)ParseToPointer(reg) -1;
 
@@ -568,10 +602,15 @@ namespace SSofTool
 								string x = args1.Trim('[', ']');
 								if (f.HasVariable(x))
 								{
+
 									int intValue = Convert.ToInt32(split[1], 16); //Address starting from RBP to save
 									string reg = SubReg2("rbp", intValue);
+									f.GetVariable(x).stackAddr = reg;
+
 									if (cstuff.ContainsKey(reg))
 									{
+										Console.WriteLine("SOULDNT BE DONE! : " + reg);
+
 										cstuff[reg] = x;
 									}
 									else
@@ -588,6 +627,24 @@ namespace SSofTool
 								}
 							}
                         }
+						//if (f.HasVariable(x))
+						//{
+						//	f.GetVariable(x).stackAddr = reg;
+
+						//}
+						//else
+						//{
+						//	if (cstuff.ContainsKey(reg))
+						//	{
+						//		Console.WriteLine("SOULDNT BE DONE! : " + reg);
+						//		cstuff[reg] = x;
+						//	}
+						//	else
+						//	{
+						//		cstuff.Add(reg, x);
+						//	}
+
+						//}
 						break;
 					case "call":
 						if (instr.args.Length < 1)
@@ -600,7 +657,6 @@ namespace SSofTool
 						//the buff_len (mov'd into register)
 						//the stdinstream (This is accessed via mov [rip-"code"])
 						string buffstart = registers["rdi"];
-						int bufflen = Convert.ToInt32(registers["esi"], 16);
 						string rip = registers["rip"];
 						string rdx = registers["rdx"];
 						string input;
@@ -622,10 +678,14 @@ namespace SSofTool
 											if (v != null)
 											{
 												int varmaxlen = v.bytes;
-												input = RandomString(bufflen);
+												int bufflen = Convert.ToInt32(registers["esi"], 16);
+												Console.WriteLine("buflen : {0}", bufflen);
+												input = InputString(bufflen);
 												frame = frames.First();
 												int i;
 												int start =(int) ParseToPointer(buffstart)-1;
+												Console.WriteLine("user input {0}", input);
+
 												for (i = 0; i < bufflen; i++)
 												{
 													if (i < varmaxlen || i > frame.end)
@@ -633,7 +693,6 @@ namespace SSofTool
 														if (stack.ContainsKey(start - i))
 														{
 															stack[start - i] = input[i];
-															//Console.WriteLine("line {0}, pointer {1}", instr.address, frame.end - i);
 
 														}
 														else
