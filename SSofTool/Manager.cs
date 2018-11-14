@@ -314,6 +314,30 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 			return new String('0', addr_val.Length);
 		}
 
+		public int InsertToStack(string input, int start, int bufflen, Variable v)
+		{
+			int i = 0;
+			for (i = 0; i < bufflen; i++)
+			{
+				if (i < v.bytes /*|| i > frame.end*/)
+				{
+					if (stack.ContainsKey(start - i))
+					{
+						stack[start - i] = input[i];
+
+					}
+					else
+					{
+						Console.WriteLine("SEGFAULT: line {0}, pointer {1}", start - i);
+					}
+				}
+				else
+				{
+					Console.WriteLine("OVERFLOW : fgets CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, start - i);
+				}
+			}
+			return i;
+		}
 		public Dictionary<int, char> Stack(string name)
 		{
 			Function f = functions_dict[name];
@@ -687,73 +711,36 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 											Variable v = f.GetVariable(cstuff[buffstart]);
 											if (v != null)
 											{
-												int varmaxlen = v.bytes;
+												//int varmaxlen = v.bytes;
 												int bufflen = Convert.ToInt32(registers["esi"], 16);
 												Console.WriteLine("buflen : {0}", bufflen);
 												input = InputString(bufflen);
 												frame = frames.First();
-												int i;
 												int start =(int) ParseToPointer(buffstart)-1;
 												Console.WriteLine("user input {0}", input);
-
-												for (i = 0; i < bufflen; i++)
-												{
-													if (i < varmaxlen /*|| i > frame.end*/)
-													{
-														if (stack.ContainsKey(start - i))
-														{
-															stack[start - i] = input[i];
-
-														}
-														else
-														{
-															Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, start - i);
-														}
-													}
-													else
-													{
-														Console.WriteLine("OVERFLOW : fgets CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, start - i);
-													}
-												}
-
-												stack[i < varmaxlen ? start - i : start - varmaxlen] = '#';
+												int i = InsertToStack(input, start, bufflen, v);
+												
+												stack[i < v.bytes ? start - i : start - v.bytes] = '#';
 											}else
 											{
 												v = last_function.GetVariable(cstuff[buffstart]);
 												if (v != null)
 												{
-													int varmaxlen = v.bytes;
+													//int varmaxlen = v.bytes;
 													int bufflen = Convert.ToInt32(registers["esi"], 16);
 													Console.WriteLine("buflen : {0}", bufflen);
 													input = InputString(bufflen);
 													frame = frames.First();
-													int i;
 													int start = (int)ParseToPointer(buffstart) - 1;
 													Console.WriteLine("user input {0}", input);
 
-													for (i = 0; i < bufflen; i++)
-													{
-														if (i < varmaxlen /*|| i > frame.end*/)
-														{
-															if (stack.ContainsKey(start - i))
-															{
-																stack[start - i] = input[i];
-
-															}
-															else
-															{
-																Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, start - i);
-															}
-														}
-														else
-														{
-															Console.WriteLine("OVERFLOW : fgets CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, start - i);
-														}
-													}
-
-													stack[i < varmaxlen ? start - i : start - varmaxlen] = '#';
+													int i = InsertToStack(input, start, bufflen, v);
+													stack[i < v.bytes ? start - i : start - v.bytes] = '#';
 												}
-												Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
+												else
+												{
+													Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
+												}
 											}
 										}
 										else
@@ -783,25 +770,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 										Console.WriteLine("start : " + start +" , bytes : " + v.bytes);
 										Console.WriteLine("strcpy input : " + input + ", address : "+ rdx);
 										//int var_size = f.GetVariable().bytes;
-										for (int i = 0; i < input.Length; i++)
-										{
-											if (i < varmaxlen /*|| i > frame.end*/)
-											{
-												if (stack.ContainsKey(start - i))
-												{
-													stack[start - i] = input[i];
-													//Console.WriteLine("line {0}, pointer {1}", instr.address, frame.end - i);
-												}
-												else
-												{
-													Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, start - i);
-												}
-											}
-											else
-											{
-												Console.WriteLine("OVERFLOW : strcpy CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, start - i);
-											}
-										}
+										int i = InsertToStack(input, start, input.Length, v);
 									}
 									else
 									{
@@ -815,26 +784,9 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 											Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
 											Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
 											//int var_size = f.GetVariable().bytes;
-											for (int i = 0; i < input.Length; i++)
-											{
-												if (i < varmaxlen /*|| i > frame.end*/)
-												{
-													if (stack.ContainsKey(start - i))
-													{
-														stack[start - i] = input[i];
-														//Console.WriteLine("line {0}, pointer {1}", instr.address, frame.end - i);
-													}
-													else
-													{
-														Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, start - i);
-													}
-												}
-												else
-												{
-													Console.WriteLine("OVERFLOW : strcpy CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, start - i);
-												}
-											}
-										} else
+											int i = InsertToStack(input, start, input.Length, v);
+										}
+										else
 										{
 											Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
 										}
