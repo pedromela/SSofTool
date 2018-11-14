@@ -625,7 +625,7 @@ namespace SSofTool
 												input = RandomString(bufflen);
 												frame = frames.First();
 												int i;
-												int start =(int) ParseToPointer(buffstart);
+												int start =(int) ParseToPointer(buffstart)-1;
 												for (i = 0; i < bufflen; i++)
 												{
 													if (i < varmaxlen || i > frame.end)
