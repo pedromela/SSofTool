@@ -74,6 +74,10 @@ Ne vis esse eirmod blandit, ei per numquam recusabo. Eu nam tantas repudiare, pr
 Eum summo labitur no, vim meis qualisque eloquentiam ex. Solet argumentum interesset eu sea.Aperiri scaevola est no. Utroque epicurei consequat no pri, qui nisl brute homero id.
 Pro at saepe primis, nam illud dicta albucius cu, animal labores eam an.Pro quod essent laoreet eu, vis movet praesent cu. Ut qui solum possim convenire, mel atqui tantas tempor cu.Eu pri congue nominati accusamus.Vim ex prima dolor, omnesque intellegam in duo, accusam interpretaris eam cu. Tollit voluptatum theophrastus vis ad.
 Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusamus mea. Partem intellegam in vim.Soluta numquam invenire eu pro, tantas adversarium mea no. Rebum hendrerit cotidieque ne ius, wisi veritus mediocrem eu usu.Option inimicus eos in, at erant accusam assentior mel.";
+			if(length > RawInput.Length)
+			{
+				return RandomString(length);
+			}
 			return RawInput.Substring(0, length);
 		}
 
@@ -422,7 +426,9 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 													//Console.WriteLine("buff1 : " + reg);
 													if (cstuff.ContainsKey(reg))
 													{
-														cstuff[reg] = x;
+														Console.WriteLine("SOMETHING WENT WRONG! cstuff ALREADY CONTAINS KEY " + reg + ", TRYING TO ADD " + x);
+
+														//cstuff[reg] = x;
 													}
 													else
 													{
@@ -609,12 +615,14 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 
 									if (cstuff.ContainsKey(reg))
 									{
-										Console.WriteLine("SOULDNT BE DONE! : " + reg);
+										Console.WriteLine("cstuff ALREADY CONTAINS KEY " + reg + ", TRYING TO ADD " + x);
 
-										cstuff[reg] = x;
+										//cstuff[reg] = x;
 									}
 									else
 									{
+										Console.WriteLine("WRITING TO cstuff " + reg + " : " + x);
+
 										cstuff.Add(reg, x);
 									}
 									//Frame frame = frames.First();
@@ -688,7 +696,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 
 												for (i = 0; i < bufflen; i++)
 												{
-													if (i < varmaxlen || i > frame.end)
+													if (i < varmaxlen /*|| i > frame.end*/)
 													{
 														if (stack.ContainsKey(start - i))
 														{
@@ -735,27 +743,28 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 										int varmaxlen = v.bytes;
 										input = GetString(rdx);
 										frame = frames.First();
-										Console.WriteLine("frame end : " + frame.end +" , bytes : " + v.bytes);
+										int start = (int)ParseToPointer(buffstart) - 1;
+										Console.WriteLine("start : " + start +" , bytes : " + v.bytes);
 										Console.WriteLine("strcpy input : " + input + ", address : "+ rdx);
 										//int var_size = f.GetVariable().bytes;
 										for (int i = 0; i < input.Length; i++)
 										{
-											if (i < varmaxlen)
+											if (i < varmaxlen /*|| i > frame.end*/)
 											{
-												if (stack.ContainsKey(frame.end - i))
+												if (stack.ContainsKey(start - i))
 												{
-													stack[frame.end - i] = input[i];
+													stack[start - i] = input[i];
 													//Console.WriteLine("line {0}, pointer {1}", instr.address, frame.end - i);
 
 												}
 												else
 												{
-													Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, frame.end - i);
+													Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, start - i);
 												}
 											}
 											else
 											{
-												Console.WriteLine("OVERFLOW : strcpy CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, frame.end - i);
+												Console.WriteLine("OVERFLOW : strcpy CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, start - i);
 											}
 										}
 									}
