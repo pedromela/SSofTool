@@ -16,6 +16,7 @@ namespace SSofTool
 		private Dictionary<string, Function> functions_dict;
         private Dictionary<string,string> registers;
 		private Dictionary<string, string> cstuff;
+		private Function last_function = null;
 
 		private int DWORD = 4;
 
@@ -336,17 +337,17 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 							string reg = instr.args[0].ToString();
 							//if (reg.Equals("rsp"))
 							//{
-								int intValue = Convert.ToInt32(instr.args[1].ToString(), 16);
-								frame = new Frame(pointer, pointer + intValue - 1);
-								frames.Push(frame);
-								for (int i = 0; i < intValue; i++)
-								{
-									//s.Push('0');
-									stack.Add(pointer, '0');
-									pointer++;
-								}
-								//registers["rsp"] = (Convert.ToInt32(registers["rbp"], 16) - intValue).ToString("X8");
-								registers[reg] = SubReg2(reg, intValue);
+							int intValue = Convert.ToInt32(instr.args[1].ToString(), 16);
+							frame = new Frame(pointer, pointer + intValue - 1);
+							frames.Push(frame);
+							for (int i = 0; i < intValue; i++)
+							{
+								//s.Push('0');
+								stack.Add(pointer, '0');
+								pointer++;
+							}
+							//registers["rsp"] = (Convert.ToInt32(registers["rbp"], 16) - intValue).ToString("X8");
+							registers[reg] = SubReg2(reg, intValue);
 							Console.WriteLine("SUB: {0} ", registers[reg]);
 
 							//Console.WriteLine("limites: {0} - {1} ", frame.start, frame.end);
@@ -604,19 +605,20 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                             string[] split = address.Split('-');
 
 							if (split.Length == 2 && split[0] == "rbp")
-                            {																			  //Console.WriteLine("buff2 : " + SubReg("rbp", intValue));
+                            {
+								//Console.WriteLine("buff2 : " + SubReg("rbp", intValue));
 								string x = args1.Trim('[', ']');
 								if (f.HasVariable(x))
 								{
 
 									int intValue = Convert.ToInt32(split[1], 16); //Address starting from RBP to save
 									string reg = SubReg2("rbp", intValue);
+
 									f.GetVariable(x).stackAddr = reg;
 
 									if (cstuff.ContainsKey(reg))
 									{
 										Console.WriteLine("cstuff ALREADY CONTAINS KEY " + reg + ", TRYING TO ADD " + x);
-
 										//cstuff[reg] = x;
 									}
 									else
@@ -717,6 +719,40 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 												stack[i < varmaxlen ? start - i : start - varmaxlen] = '#';
 											}else
 											{
+												v = last_function.GetVariable(cstuff[buffstart]);
+												if (v != null)
+												{
+													int varmaxlen = v.bytes;
+													int bufflen = Convert.ToInt32(registers["esi"], 16);
+													Console.WriteLine("buflen : {0}", bufflen);
+													input = InputString(bufflen);
+													frame = frames.First();
+													int i;
+													int start = (int)ParseToPointer(buffstart) - 1;
+													Console.WriteLine("user input {0}", input);
+
+													for (i = 0; i < bufflen; i++)
+													{
+														if (i < varmaxlen /*|| i > frame.end*/)
+														{
+															if (stack.ContainsKey(start - i))
+															{
+																stack[start - i] = input[i];
+
+															}
+															else
+															{
+																Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, start - i);
+															}
+														}
+														else
+														{
+															Console.WriteLine("OVERFLOW : fgets CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, start - i);
+														}
+													}
+
+													stack[i < varmaxlen ? start - i : start - varmaxlen] = '#';
+												}
 												Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
 											}
 										}
@@ -755,7 +791,6 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 												{
 													stack[start - i] = input[i];
 													//Console.WriteLine("line {0}, pointer {1}", instr.address, frame.end - i);
-
 												}
 												else
 												{
@@ -770,7 +805,39 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 									}
 									else
 									{
-										Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
+										v = last_function.GetVariable(cstuff[buffstart]);
+										if (v != null)
+										{
+											int varmaxlen = v.bytes;
+											input = GetString(rdx);
+											frame = frames.First();
+											int start = (int)ParseToPointer(buffstart) - 1;
+											Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
+											Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
+											//int var_size = f.GetVariable().bytes;
+											for (int i = 0; i < input.Length; i++)
+											{
+												if (i < varmaxlen /*|| i > frame.end*/)
+												{
+													if (stack.ContainsKey(start - i))
+													{
+														stack[start - i] = input[i];
+														//Console.WriteLine("line {0}, pointer {1}", instr.address, frame.end - i);
+													}
+													else
+													{
+														Console.WriteLine("SEGFAULT: line {0}, pointer {1}", instr.address, start - i);
+													}
+												}
+												else
+												{
+													Console.WriteLine("OVERFLOW : strcpy CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, start - i);
+												}
+											}
+										} else
+										{
+											Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
+										}
 									}
 								}
 								else
@@ -844,6 +911,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 								if (functions_dict.ContainsKey(name))
 								{
 									//pointer++;
+									last_function = f;
 									stack.Concat(Stack(name));
 									frames.Pop();
 								}
