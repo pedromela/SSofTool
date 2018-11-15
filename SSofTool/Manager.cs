@@ -74,7 +74,14 @@ namespace SSofTool
 			  .Select(s => s[random.Next(s.Length)]).ToArray());
 		}
 
-        public void WriteJson()
+		public void WriteJson(string file)
+		{
+			vulnurabilities += "]\n";
+			string[] split = vulnurabilities.Split('\n');
+			System.IO.File.WriteAllLines(file + ".json", split);
+		}
+
+		public void WriteJson()
         {
             vulnurabilities += "]\n";
             string[] split = vulnurabilities.Split('\n');
@@ -1041,7 +1048,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 				}
 			}
 
-            WriteJson();
+            //WriteJson();
 			return stack;
 		}
 		public List<KeyValuePair<string, string>> RenderStack()

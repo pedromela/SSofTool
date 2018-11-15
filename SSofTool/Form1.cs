@@ -17,6 +17,7 @@ namespace SSofTool
 	{
 		private Manager manager;
 		private string filename = null;
+		private string fileout = null;
 		public Form1()
 		{
 			InitializeComponent();
@@ -28,6 +29,8 @@ namespace SSofTool
 			InitializeComponent();
 			manager = new Manager();
 			filename = input;
+			//string[] toks = filename.Split('.');
+			fileout = filename.Substring(0, filename.Length - 4) + "output.json";
 			LoadJson(filename);
 			LoadCode();
 			LoadStack();
@@ -97,6 +100,7 @@ namespace SSofTool
 			//	pars[1] = item.Value;
 			//	Stack.Rows.Add(pars);
 			//}
+			manager.WriteJson(fileout);
 		}
 
 		private void Clear()
