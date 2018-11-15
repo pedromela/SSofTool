@@ -77,7 +77,7 @@ namespace SSofTool
         {
             vulnurabilities += "]\n";
             string[] split = vulnurabilities.Split('\n');
-            System.IO.File.WriteAllLines(@"public_tests\output.json", split);
+            System.IO.File.WriteAllLines(@"public_tests\out.json", split);
         }
 
 		public string InputString(int length)
@@ -392,7 +392,8 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 		}
 		public int InsertToStack(string input, int start, int bufflen, Variable v)
 		{
-			int i = 0;
+            int range = 0;
+            int i = 0;
             Frame f = frames.First();
 			int len = input.Length;
 			CheckAllVars(start, len , v);
@@ -413,14 +414,21 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 				}
 				else
 				{
-                    
+
                     //Console.WriteLine("OVERFLOW : fgets CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, start - i);
-                    string overflown_address = "rbp-"+DecToHex((start - i - f.start + 1));
-                    this.invalidacc.overflown_address = overflown_address;
-                    vulnurabilities += (invalidacc.ToString()+"\n");
-                    Console.WriteLine(invalidacc.ToString());
+
+
                     
-                    
+                    if (range % 8 == 0)
+                    {
+                        string overflown_address = "rbp-" + DecToHex((start - i - f.start + 1));
+                        this.invalidacc.overflown_address = overflown_address;
+                        vulnurabilities += (invalidacc.ToString() + "\n");
+                        Console.WriteLine(invalidacc.ToString());
+                    }
+                    range++;
+
+
                 }
 			}
 			return i;
@@ -816,6 +824,10 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 												frame = frames.First();
 												int start =(int) ParseToPointer(buffstart)-1;
 												Console.WriteLine("user input {0}", input);
+
+                                                invalidacc.overflown_var = v.name;
+                                                invalidacc.fnname = "fgets";
+                                                //varoverflow
                                                 foreach (KeyValuePair<string, Function> kp in functions_dict)
                                                 {
                                                     if (kp.Value == f)
@@ -823,9 +835,10 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                                         invalidacc.vuln_function = kp.Key.ToString();
                                                     }
                                                 }
+                                                
                                                 invalidacc.address = instr.address.ToString();
                                                 invalidacc.vulnurability = "INVALIDACCS";
-                                                invalidacc.overflown_var = v.name;
+                                                //invalidacc.overflown_var = v.name;
                                                 int i = InsertToStack(input, start, bufflen, v);
 												
 												stack[i < v.bytes ? start - i : start - v.bytes] = '#';
@@ -842,7 +855,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 													frame = frames.First();
 													int start = (int)ParseToPointer(buffstart) - 1;
 													Console.WriteLine("user input {0}", input);                                                    
-                                                    invalidacc.fnname = "fgets";
+                                                    //invalidacc.fnname = "fgets";
                                                     foreach (KeyValuePair<string, Function> kp in functions_dict)
                                                     {
                                                         if (kp.Value == f)
@@ -850,6 +863,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                                             invalidacc.vuln_function = kp.Key.ToString();
                                                         }
                                                     }
+                                                    
                                                     invalidacc.address = instr.address.ToString();
                                                     invalidacc.vulnurability = "INVALIDACCS";
                                                     invalidacc.overflown_var = v.name;
