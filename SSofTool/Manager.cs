@@ -77,8 +77,10 @@ namespace SSofTool
 		public void WriteJson(string file)
 		{
 			vulnurabilities += "]\n";
+			Console.WriteLine(vulnurabilities);
 			string[] split = vulnurabilities.Split('\n');
-			System.IO.File.WriteAllLines(file + ".json", split);
+			System.IO.File.WriteAllText(file + ".json", vulnurabilities);
+			//System.IO.File.WriteAllLines(file + ".json", vulnurabilities);
 		}
 
 		public void WriteJson()
