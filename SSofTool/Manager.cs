@@ -373,7 +373,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 								varend = varstart - v2.bytes;
 								Console.WriteLine("varstart2 : {0} , varend2 : {1} ", varstart, varend);
 								Console.WriteLine("start2 : {0} , end2 : {1} ", start, end);
-								if (start >= varstart && end <= varend)
+								if (!((start > varstart && end > varstart && start > varend && end > varend) || (start < varstart && end < varstart && start < varend && end < varend)))
 								{
 									Console.WriteLine("OVERFLOWNVAR " + v2.name + " : writing var " + v.name + " inside space allocated to var " + v2.name + ".");
 
