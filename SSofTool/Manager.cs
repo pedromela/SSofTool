@@ -177,6 +177,22 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 			return str;
 		}
 
+		private string PopFromStack(string addr, int n = 8)
+		{
+			Console.WriteLine("pointer : " + pointer);
+			Console.WriteLine("addr : " + addr);
+
+			ulong addr_val = ParseToPointer(addr) - 1;
+			Console.WriteLine("addr_Val : " + addr_val);
+			string str = "";
+			while (n > 0)
+			{
+				n--;
+				str += stack[(int)addr_val];
+				addr_val--;
+			}
+			return str;
+		}
 
 		private string GetString(string addr, int n)
 		{
@@ -1035,10 +1051,15 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 
                             
 					case "leave":
-
+						registers["rsp"] = registers["rbp"];
+						Console.WriteLine("RBP : " + GetString(registers["rbp"], QWORD));
+						registers["rbp"] = ASCIIToHex(PopFromStack(registers["rbp"]));
 						break;
 					case "ret":
 
+						break;
+
+					case "jmp":
 						break;
 					default:
 						break;
