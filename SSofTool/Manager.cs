@@ -158,7 +158,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 
 		public void SetRip(Instruction instr)
 		{
-			registers["rip"] = AutoComplete(instr.address, 8);
+			registers["rip"] = AutoComplete(instr.address, 16);
 			//n_instructions++;
 		}
 		public static string AutoComplete(string str, int size)
@@ -400,6 +400,31 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 			}
 
 		}
+		public void PushToStack(string reg)
+		{
+			string ToWrite = HexToASCII(AutoComplete(registers[reg], 16));
+			Console.WriteLine("DFSSDFA FSDFA : " + AutoComplete(registers[reg], 16));
+			int len = ToWrite.Length;
+			int i = pointer + len - 1;
+			foreach (char c in ToWrite)
+			{
+				if (stack.ContainsKey(i))
+				{
+					Console.WriteLine("bad pointer : " + pointer + " , c : " + c);
+				}
+				else
+				{
+					//Console.WriteLine("pointer : " + pointer + " , c : " + c);
+
+					stack.Add(i, c);
+					pointer++;
+					i--;
+
+				}
+			}
+
+			registers["rsp"] = SubReg2("rsp", len); // actualizar rsp (stack pointer)		
+		}
 		public int InsertToStack(string input, int start, int bufflen, Variable v)
 		{
             int range = 0;
@@ -465,7 +490,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 			{
 				SetRip(instr);
 				Console.WriteLine("{0}", instr.op);
-				Console.WriteLine("rdx : " + registers["rdx"]);
+				Console.WriteLine("rip : " + registers["rip"]);
 				//Console.WriteLine("rdi : " + registers["rdi"]);
 				Console.WriteLine("rbp : " + registers["rbp"]);
 				//Console.WriteLine("rsp : " + registers["rsp"]);
@@ -503,39 +528,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 						if(l == 1)
 						{
 							string reg = instr.args[0].ToString();
-							//if (value.Equals("rbp"))
-							//{
-							string ToWrite = HexToASCII(registers[reg]);
-							int len = ToWrite.Length;
-							//while (len != 8)
-							//{
-							//	stack.Add(pointer, '0');
-							//	pointer++;
-							//	len++;
-							//}
-							int i = pointer + len -	1;
-							foreach (char c in ToWrite)
-							{
-								if (stack.ContainsKey(i))
-								{
-									Console.WriteLine("bad pointer : " + pointer + " , c : " + c);
-								}else
-								{
-									//Console.WriteLine("pointer : " + pointer + " , c : " + c);
-
-									stack.Add(i, c);
-									pointer++;
-									i--;
-
-								}
-							}
-							//registers[reg] = (0xFFFFFFFF - pointer).ToString("X8");
-							//Console.WriteLine("PUSH: {0} , length: {1}", registers["rsp"], registers["rsp"].Length);
-
-							registers["rsp"] = SubReg2("rsp" , len); // actualizar rsp (stack pointer)
-							//Console.WriteLine("PUSH: {0} ", SubReg2("rsp", registers["rsp"].Length));
-
-							//}
+							PushToStack(reg);
 						}
 						break;
 					case "mov":
@@ -804,21 +797,21 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 							Console.WriteLine("This call makes no sense");
 						}
 						Console.WriteLine(instr.args[0]);
-                        //fgets is dangerous, there's 3 arguments  that are put in registers before calling an fgets
-                        //the buffer (LEA'd into register)
-                        //the buff_len (mov'd into register)
-                        //the stdinstream (This is accessed via mov [rip-"code"])
+						//fgets is dangerous, there's 3 arguments  that are put in registers before calling an fgets
+						//the buffer (LEA'd into register)
+						//the buff_len (mov'd into register)
+						//the stdinstream (This is accessed via mov [rip-"code"])
 
-                        //output.json stuff
-                       
-
+						//output.json stuff
 
 
 						string buffstart = registers["rdi"];
 						string rip = registers["rip"];
 						string rdx = registers["rdx"];
 						string input;
-						Console.WriteLine("default functions input address: " + rdx);
+						Console.WriteLine("default functions input address: " + rip);
+						
+
 						switch (instr.args[0].ToString())
 						{
 							//case for dangerous function calls
@@ -1027,6 +1020,8 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 								if (functions_dict.ContainsKey(name))
 								{
 									//pointer++;
+									
+									PushToStack("rip"); // RETURN ADDRESS
 									last_function = f;
 									f = functions_dict[name];
 									stack.Concat(Stack());

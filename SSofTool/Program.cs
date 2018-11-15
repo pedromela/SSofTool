@@ -22,9 +22,9 @@ namespace SSofTool
 			}
 			else if(args.Count() == 1)
 			{
-				Application.EnableVisualStyles();
-				Application.SetCompatibleTextRenderingDefault(false);
-				Application.Run(new Form1(args[0]));
+				//Application.EnableVisualStyles();
+				//Application.SetCompatibleTextRenderingDefault(false);
+				Form1 form = new Form1(args[0]);
 			}
 		}
 	}

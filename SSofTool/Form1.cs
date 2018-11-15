@@ -26,14 +26,14 @@ namespace SSofTool
 
 		public Form1(string input)
 		{
-			InitializeComponent();
+			//InitializeComponent();
 			manager = new Manager();
 			filename = input;
 			//string[] toks = filename.Split('.');
 			fileout = filename.Substring(0, filename.Length - 4) + "output.json";
 			LoadJson(filename);
-			LoadCode();
-			LoadStack();
+			//LoadCode();
+			LoadStackCMD();
 		}
 
 		private void Init() {
@@ -71,6 +71,7 @@ namespace SSofTool
 			}
 
 		}
+
 		private void LoadCode()
 		{
 			//Console.WriteLine(manager.RenderCode());
@@ -100,6 +101,13 @@ namespace SSofTool
 			//	pars[1] = item.Value;
 			//	Stack.Rows.Add(pars);
 			//}
+			manager.WriteJson(fileout);
+		}
+
+		private void LoadStackCMD()
+		{
+			manager.f = manager.GetFunction("main");
+			Dictionary<int, char> stack = manager.Stack();
 			manager.WriteJson(fileout);
 		}
 
