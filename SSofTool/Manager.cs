@@ -17,6 +17,8 @@ namespace SSofTool
         private Dictionary<string,string> registers;
 		private Dictionary<string, string> cstuff;
 		private Function last_function = null;
+		public Function f = null; // functions_dict[name];
+
 
 		private int DWORD = 4;
 
@@ -329,10 +331,72 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 			return new String('0', addr_val.Length);
 		}
 
+		public void CheckAllVars(int start, int len, Variable v)
+		{
+			Variable v2;
+			int end = start - len;
+			int varstart, varend;
+			foreach (var item in cstuff)
+			{
+				Console.WriteLine("ADDRESS : " + item.Key);
+				if(f.HasVariable(item.Value))
+				{
+
+					v2 = f.GetVariable(item.Value);
+					Console.WriteLine("VAR NAME : " + v2.name);
+
+					if (!v.name.Equals(v2.name))
+					{
+						varstart = (int)ParseToPointer(item.Key);
+						varend = varstart - v2.bytes;
+						Console.WriteLine("varstart : {0} , varend : {1} ", varstart, varend);
+						Console.WriteLine("start : {0} , end : {1} ", start, end);
+
+						if (!((start > varstart && end > varstart && start > varend && end > varend) || (start < varstart && end < varstart && start < varend && end < varend)))
+						{
+							Console.WriteLine("OVERFLOWN VAR " + v2.name + " : writing var " + v.name + " inside space allocated to var " + v2.name + ".");
+
+						}
+					}
+				} else
+				{
+					if (last_function != null)
+					{
+						if (last_function.HasVariable(item.Value))
+						{
+							v2 = last_function.GetVariable(item.Value);
+							Console.WriteLine("VAR NAME : " + v2.name);
+
+							if (!v.name.Equals(v2.name))
+							{
+								varstart = (int)ParseToPointer(item.Key);
+								varend = varstart - v2.bytes;
+								Console.WriteLine("varstart2 : {0} , varend2 : {1} ", varstart, varend);
+								Console.WriteLine("start2 : {0} , end2 : {1} ", start, end);
+								if (start >= varstart && end <= varend)
+								{
+									Console.WriteLine("OVERFLOWNVAR " + v2.name + " : writing var " + v.name + " inside space allocated to var " + v2.name + ".");
+
+								}
+							}
+						}
+						else
+						{
+							Console.WriteLine("Something went wrong! Variable not in json input.");
+						}
+					}
+				}
+	
+			}
+
+		}
 		public int InsertToStack(string input, int start, int bufflen, Variable v)
 		{
 			int i = 0;
             Frame f = frames.First();
+			int len = input.Length;
+			CheckAllVars(start, len , v);
+
 			for (i = 0; i < bufflen; i++)
 			{
 				if (i < v.bytes /*|| i > frame.end*/)
@@ -351,7 +415,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 				{
                     
                     //Console.WriteLine("OVERFLOW : fgets CANT RIDE OUTSIDE VARIABLE BAUNDARIES var {0}, pointer {1}", v.name, start - i);
-                    string overflown_address = "rbp-"+ToHex((start - i - f.start + 1));
+                    string overflown_address = "rbp-"+DecToHex((start - i - f.start + 1));
                     this.invalidacc.overflown_address = overflown_address;
                     vulnurabilities += (invalidacc.ToString()+"\n");
                     Console.WriteLine(invalidacc.ToString());
@@ -362,14 +426,13 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 			return i;
 		}
 
-        public string ToHex(int value)
+        public string DecToHex(int value)
         {
             return String.Format("0x{0:X}", value);
         }
 
-        public Dictionary<int, char> Stack(string name)
+        public Dictionary<int, char> Stack()
 		{
-			Function f = functions_dict[name];
 			Frame frame;
 
 			foreach (Instruction instr in f.GetInstructions())
@@ -916,12 +979,13 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                 break;
                             default:
 								//Console.WriteLine("function : {0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
-								name = instr.args[0].ToString().Trim('<', '>');
+								string name = instr.args[0].ToString().Trim('<', '>');
 								if (functions_dict.ContainsKey(name))
 								{
 									//pointer++;
 									last_function = f;
-									stack.Concat(Stack(name));
+									f = functions_dict[name];
+									stack.Concat(Stack());
 									frames.Pop();
 								}
 								break;

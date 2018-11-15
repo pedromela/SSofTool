@@ -81,7 +81,8 @@ namespace SSofTool
 			//Stack.ClearSelection();
 			
 			object[] pars = { "av", "ac" };
-			Dictionary<int, char> stack = manager.Stack("main");
+			manager.f = manager.GetFunction("main");
+			Dictionary<int, char> stack = manager.Stack();
 			ripLabel.Text = manager.GetRegister("rip");
 			int pointer = 0;
 			for(pointer = 0; stack.ContainsKey(pointer); pointer++) {
