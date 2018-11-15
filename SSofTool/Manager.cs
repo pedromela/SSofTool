@@ -49,7 +49,8 @@ namespace SSofTool
 			pointer = 0;
 			InitializeRegisters();
             this.invalidacc = new Newtonsoft.Json.Linq.JObject();
-            
+            this.varoverflow = new Newtonsoft.Json.Linq.JObject();
+            this.rbpoverflow = new Newtonsoft.Json.Linq.JObject();
         }
 
 		public void InitializeRegisters()
@@ -354,8 +355,10 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 
 						if (!((start > varstart && end > varstart && start > varend && end > varend) || (start < varstart && end < varstart && start < varend && end < varend)))
 						{
+                            
 							Console.WriteLine("OVERFLOWN VAR " + v2.name + " : writing var " + v.name + " inside space allocated to var " + v2.name + ".");
-
+                            varoverflow.overflown_var = v2.name;
+                            vulnurabilities += (varoverflow.ToString() + "\n");
 						}
 					}
 				} else
@@ -421,10 +424,18 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                     
                     if (range % 8 == 0)
                     {
-                        string overflown_address = "rbp-" + DecToHex((start - i - f.start + 1));
-                        this.invalidacc.overflown_address = overflown_address;
-                        vulnurabilities += (invalidacc.ToString() + "\n");
-                        Console.WriteLine(invalidacc.ToString());
+                        int lastaddress = start - i - f.start + 1;
+                        if (lastaddress <= 0)
+                        {
+                            vulnurabilities += (rbpoverflow.ToString() + "\n");
+                        }
+                        else
+                        {
+                            string overflown_address = "rbp-" + DecToHex((start - i - f.start + 1));
+                            this.invalidacc.overflown_address = overflown_address;
+                            vulnurabilities += (invalidacc.ToString() + "\n");
+                            Console.WriteLine(invalidacc.ToString());
+                        }
                     }
                     range++;
 
@@ -825,19 +836,31 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 												int start =(int) ParseToPointer(buffstart)-1;
 												Console.WriteLine("user input {0}", input);
 
-                                                invalidacc.overflown_var = v.name;
+                                                invalidacc.overflow_var = v.name;
                                                 invalidacc.fnname = "fgets";
+                                                varoverflow.fnname = "fgets";
+                                                rbpoverflow.vulnurability = "RBPOVERFLOW";
+                                                rbpoverflow.overflow_var = v.name;
+                                                
                                                 //varoverflow
                                                 foreach (KeyValuePair<string, Function> kp in functions_dict)
                                                 {
                                                     if (kp.Value == f)
                                                     {
                                                         invalidacc.vuln_function = kp.Key.ToString();
+                                                        varoverflow.vuln_function = kp.Key.ToString();
+                                                        rbpoverflow.vuln_function = kp.Key.ToString();
                                                     }
                                                 }
                                                 
                                                 invalidacc.address = instr.address.ToString();
                                                 invalidacc.vulnurability = "INVALIDACCS";
+                                                varoverflow.vulnurability = "VAROVERFLOW";
+                                                varoverflow.overflow_var = v.name;
+                                                varoverflow.address = instr.address.ToString();
+                                                rbpoverflow.address = instr.address.ToString();
+                                                rbpoverflow.fnname = "fgets";
+                                                
                                                 //invalidacc.overflown_var = v.name;
                                                 int i = InsertToStack(input, start, bufflen, v);
 												
