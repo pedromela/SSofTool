@@ -431,11 +431,32 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 
 			registers["rsp"] = SubReg2("rsp", len); // actualizar rsp (stack pointer)		
 		}
-		public int InsertToStack(string input, int start, int bufflen, Variable v)
+
+		public int GetStringTerminationIndex(int index/*, int maxlen*/)
+		{
+			while(index > 0/* && maxlen > 0*/)
+			{
+				index--;
+				/*maxlen--;*/
+				if(stack[index] == '#')
+				{
+					return index;
+				}
+			}
+			return 0;
+
+		}
+
+		public int InsertToStack(string input, int start, int bufflen, Variable v , bool append = false)
 		{
             int range = 0;
             int i = 0;
             Frame f = frames.First();
+			if(append)
+			{
+				Console.WriteLine("GetStringTerminationIndex(start/*, v.bytes*/)" + GetStringTerminationIndex(start/*, v.bytes*/));
+				start += GetStringTerminationIndex(start/*, v.bytes*/);
+			}
 			int len = input.Length;
 			CheckAllVars(start, len , v);
 
@@ -1009,7 +1030,101 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                     }
                                 }
                                 break;
-                            default:
+							case "<strncat@plt>":
+								//Console.WriteLine("{0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
+
+								if (cstuff.ContainsKey(buffstart) && cstuff.ContainsKey(rdx))
+								{
+									//Console.WriteLine("buffstart : " + buffstart);
+									//Console.WriteLine("cstuff[buffstart] : " + cstuff[buffstart]);
+									//Console.WriteLine("input : " + input);
+									int bufflen = (int)Convert.ToInt64(registers["rcx"], 16);
+									Variable v = f.GetVariable(cstuff[buffstart]);
+									if (v != null)
+									{
+										int varmaxlen = v.bytes;
+										input = GetString(rdx);
+										frame = frames.First();
+										int start = (int)ParseToPointer(buffstart) - 1;
+										Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
+										Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
+										//int var_size = f.GetVariable().bytes;
+
+										int i = InsertToStack(input, start, bufflen, v, true);
+									}
+									else
+									{
+										v = last_function.GetVariable(cstuff[buffstart]);
+										if (v != null)
+										{
+											int varmaxlen = v.bytes;
+											input = GetString(rdx);
+											frame = frames.First();
+											int start = (int)ParseToPointer(buffstart) - 1;
+											Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
+											Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
+											//int var_size = f.GetVariable().bytes;
+											int i = InsertToStack(input, start, bufflen, v, true);
+										}
+										else
+										{
+											Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
+										}
+									}
+								}
+								else
+								{
+									Console.WriteLine("CANT FIND VARIABLE: var {0}", rdx);
+								}
+								break;
+							case "<strcat@plt>":
+								//Console.WriteLine("{0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
+
+								if (cstuff.ContainsKey(buffstart) && cstuff.ContainsKey(rdx))
+								{
+									//Console.WriteLine("buffstart : " + buffstart);
+									//Console.WriteLine("cstuff[buffstart] : " + cstuff[buffstart]);
+									//Console.WriteLine("input : " + input);
+
+									Variable v = f.GetVariable(cstuff[buffstart]);
+									if (v != null)
+									{
+										int varmaxlen = v.bytes;
+										input = GetString(rdx);
+										frame = frames.First();
+										
+										int start = (int)ParseToPointer(buffstart) - 1;
+										Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
+										Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
+										//int var_size = f.GetVariable().bytes;
+										int i = InsertToStack(input, start, input.Length, v, true);
+									}
+									else
+									{
+										v = last_function.GetVariable(cstuff[buffstart]);
+										if (v != null)
+										{
+											int varmaxlen = v.bytes;
+											input = GetString(rdx);
+											frame = frames.First();
+											int start = (int)ParseToPointer(buffstart) - 1;
+											Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
+											Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
+											//int var_size = f.GetVariable().bytes;
+											int i = InsertToStack(input, start, input.Length, v, true);
+										}
+										else
+										{
+											Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
+										}
+									}
+								}
+								else
+								{
+									Console.WriteLine("CANT FIND VARIABLE: var {0}", rdx);
+								}
+								break;
+							default:
 								//Console.WriteLine("function : {0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
 								string name = instr.args[0].ToString().Trim('<', '>');
 								if (functions_dict.ContainsKey(name))
