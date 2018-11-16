@@ -59,6 +59,9 @@ namespace SSofTool
 			registers.Add("rsi", "0000000000000000");
 			registers.Add("esi", "00000000");
 			registers.Add("eax", "00000000");
+			registers.Add("ebx", "00000000");
+			registers.Add("ecx", "00000000");
+			registers.Add("edx", "00000000");
 			registers.Add("rax", "0000000000000000");
 			registers.Add("rbx", "FFFFFFFFFFFFFFFF");
 			registers.Add("rcx", "FFFFFFFFFFFFFFFF");
@@ -328,6 +331,23 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 			return (Convert.ToInt32(registers[reg],16) - value).ToString("X8");
 		}
 
+		public string AddReg(string reg, int value)
+		{
+			string addr_val = registers[reg];
+			if (addr_val.Length == 8)
+			{
+				return (Convert.ToInt32(addr_val, 16) + value).ToString("X8");
+			}
+			else if (addr_val.Length == 16)
+			{
+				return (Convert.ToInt64(addr_val, 16) + value).ToString("X16");
+			}
+			else if (addr_val.Length == 16)
+			{
+				return (Convert.ToInt16(addr_val, 16) + value).ToString("X4");
+			}
+			return new String('0', addr_val.Length);
+		}
 		public string SubReg2(string reg, int value)
 		{
 			string addr_val = registers[reg];
@@ -432,16 +452,17 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 			registers["rsp"] = SubReg2("rsp", len); // actualizar rsp (stack pointer)		
 		}
 
-		public int GetStringTerminationIndex(int index/*, int maxlen*/)
+		public int GetStringTerminationIndex(int index, int maxlen)
 		{
-			while(index > 0/* && maxlen > 0*/)
+			while(index > 0 && maxlen > 0)
 			{
-				index--;
-				/*maxlen--;*/
+				Console.WriteLine("Index : " + index);
 				if(stack[index] == '#')
 				{
 					return index;
 				}
+				index--;
+				maxlen--;
 			}
 			return 0;
 
@@ -452,10 +473,11 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
             int range = 0;
             int i = 0;
             Frame f = frames.First();
-			if(append)
+
+			if (append)
 			{
-				Console.WriteLine("GetStringTerminationIndex(start/*, v.bytes*/)" + GetStringTerminationIndex(start/*, v.bytes*/));
-				start += GetStringTerminationIndex(start/*, v.bytes*/);
+				Console.WriteLine("GetStringTerminationIndex(start/*, v.bytes*/)" + GetStringTerminationIndex(start, v.bytes));
+				start += GetStringTerminationIndex(start, v.bytes);
 			}
 			int len = input.Length;
 			CheckAllVars(start, len , v);
@@ -471,7 +493,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 					}
 					else
 					{
-						Console.WriteLine("SEGFAULT: line {0}, pointer {1}", start - i);
+						Console.WriteLine("SEGFAULT: line {0}", start - i);
 					}
 				}
 				else
@@ -521,15 +543,32 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 				//Console.WriteLine("rdi : " + registers["rdi"]);
 				//Console.WriteLine("rbp : " + registers["rbp"]);
 				//Console.WriteLine("rsp : " + registers["rsp"]);
-				//Console.WriteLine("POINTER : " + pointer);
+				Console.WriteLine("POINTER : " + pointer);
 				f.current_instr = instr.pos;
 				switch (instr.op)
 				{
+					case "add":
+						if (instr.args.Length == 2)
+						{
+							string reg = instr.args[0].ToString();
+							int intValue = (int) Convert.ToInt64(instr.args[1].ToString(), 16);
+							Console.WriteLine("INT VALUE : " + intValue);
+							frame = new Frame(pointer, pointer - intValue - 1);
+							frames.Push(frame);
+							for (int i = 0; i < -intValue; i++)
+							{
+								stack[pointer] = '0';
+								//stack.Add(pointer, '0');
+								pointer++;
+							}
+							registers[reg] = SubReg2(reg, -intValue);
+						}
+						break;
 					case "sub":
 						if(instr.args.Length == 2)
 						{
 							string reg = instr.args[0].ToString();
-							int intValue = Convert.ToInt32(instr.args[1].ToString(), 16);
+							int intValue = (int) Convert.ToUInt32(instr.args[1].ToString(), 16);
 							frame = new Frame(pointer, pointer + intValue - 1);
 							frames.Push(frame);
 							for (int i = 0; i < intValue; i++)
@@ -648,10 +687,11 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 											{
 												instr.args[instr.args.Count() - 1] = toks[1];
 												toks[1] = AutoComplete(toks[1], n);
-												
+
 												registers[r.Key] = toks[1];
-												cstuff.Add(toks[1], toks[2]); 
-										
+
+												cstuff[toks[1]] = toks[2];
+
 											}
 										}
 										else if(instr.args.Length == 2) // 2  args 
