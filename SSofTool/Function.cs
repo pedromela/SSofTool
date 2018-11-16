@@ -12,6 +12,8 @@ namespace SSofTool
 		private Dictionary<string, Variable> variables = new Dictionary<string, Variable>();
 		private List<Instruction> instructions = new List<Instruction>();
 
+		public int current_instr = 0;
+
 		public Function()
 		{
 		}

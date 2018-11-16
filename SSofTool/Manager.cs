@@ -295,9 +295,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 					char character = (char) (decval + offset);
 					//Console.WriteLine("char : " + character);
 					ascii += character;
-
 				}
-
 				return ascii;
 			}
 			catch (Exception ex) { Console.WriteLine("HexToString exception : " + ex.Message); }
@@ -310,23 +308,16 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 			try
 			{
 				int offset = 255;
-
 				string hex = string.Empty;
-
 				for (int i = 0; i < String.Length; i++)
 				{
 					String hs = string.Empty;
-
 					int c = (int)String[i] - offset;
-
 					hex += c.ToString("X2");
-
 				}
-
 				return hex;
 			}
 			catch (Exception ex) { Console.WriteLine("HexToString exception : " + ex.Message); }
-
 			return string.Empty;
 		}
 
@@ -338,22 +329,18 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 		public string SubReg2(string reg, int value)
 		{
 			string addr_val = registers[reg];
-			//Console.WriteLine("SubReg2 : {0}", addr_val.Length);
 			if (addr_val.Length == 8)
 			{
 				return (Convert.ToInt32(addr_val, 16) - value).ToString("X8");
 			}
 			else if (addr_val.Length == 16)
 			{
-				//Console.WriteLine("SubReg CASE 16 : {0}", addr_val.Length);
-
 				return (Convert.ToInt64(addr_val, 16) - value).ToString("X16");
 			}
 			else if (addr_val.Length == 16)
 			{
 				return (Convert.ToInt16(addr_val, 16) - value).ToString("X4");
 			}
-			//Console.WriteLine("SubReg2 : {0}", new String('0', addr_val.Length));
 			return new String('0', addr_val.Length);
 		}
 
@@ -421,7 +408,6 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 		public void PushToStack(string reg)
 		{
 			string ToWrite = HexToASCII(AutoComplete(registers[reg], 16));
-			Console.WriteLine("DFSSDFA FSDFA : " + AutoComplete(registers[reg], 16));
 			int len = ToWrite.Length;
 			int i = pointer + len - 1;
 			foreach (char c in ToWrite)
@@ -510,10 +496,10 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 				Console.WriteLine("{0}", instr.op);
 				Console.WriteLine("rip : " + registers["rip"]);
 				//Console.WriteLine("rdi : " + registers["rdi"]);
-				Console.WriteLine("rbp : " + registers["rbp"]);
+				//Console.WriteLine("rbp : " + registers["rbp"]);
 				//Console.WriteLine("rsp : " + registers["rsp"]);
-				Console.WriteLine("POINTER : " + pointer);
-
+				//Console.WriteLine("POINTER : " + pointer);
+				f.current_instr = instr.pos;
 				switch (instr.op)
 				{
 					case "sub":
@@ -531,13 +517,8 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 								stack.Add(pointer, '0');
 								pointer++;
 							}
-							//registers["rsp"] = (Convert.ToInt32(registers["rbp"], 16) - intValue).ToString("X8");
 							registers[reg] = SubReg2(reg, intValue);
 							Console.WriteLine("SUB: {0} ", registers[reg]);
-
-							//Console.WriteLine("limites: {0} - {1} ", frame.start, frame.end);
-							//Console.WriteLine((Convert.ToInt32(registers["rbp"],16) - intValue).ToString("X8"));
-							//}
 						}
 						break;
 					case "push":
@@ -589,25 +570,6 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 														cstuff.Add(reg, x);
 													}
 												}
-
-												//if (f.HasVariable(x))
-												//{
-												//	f.GetVariable(x).stackAddr = reg;
-
-												//}
-												//else
-												//{
-												//	if (cstuff.ContainsKey(reg))
-												//	{
-												//		Console.WriteLine("SOULDNT BE DONE! : " + reg);
-												//		cstuff[reg] = x;
-												//	}
-												//	else
-												//	{
-												//		cstuff.Add(reg, x);
-												//	}
-
-												//}
 												frame = frames.First();
 												int i = (int)ParseToPointer(reg) -1;
 
@@ -698,7 +660,6 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 														if (!string.IsNullOrEmpty(instr.args[1].ToString()))
 														{
 															string reg = SubReg2(args[0], intValue-1);
-															//Console.WriteLine("buff1 addr: " + addr);
 															int n = 0;
 															if (toks[0].First() == 'Q')
 															{
@@ -708,23 +669,11 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 															{
 																n = DWORD;
 															}
-															//Console.WriteLine("mov {0}  , {1}", instr.args[0].ToString(), reg);
-															//Console.WriteLine("mov {0}  , {1}", instr.args[0].ToString()), instr.args[1].ToString());
 															registers[instr.args[0].ToString()] = ASCIIToHex(GetString(reg, n));
-															Console.WriteLine("buff1 : {0} , {1} , {2}", addr, args[0], registers[instr.args[0].ToString()]);
-
-															//if (f.HasVariable(addr))
-															//{
-																
-															//	f.GetVariable(addr).stackAddr = registers[instr.args[0].ToString()];
-															//	//cstuff.Add(GetString(reg, 8), addr);
-
-															//}
-
+															//Console.WriteLine("buff1 : {0} , {1} , {2}", addr, args[0], registers[instr.args[0].ToString()]);
+														
 														}
 													}
-
-
 												}
 											}
 											else // mov reg1, reg2
@@ -790,24 +739,6 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 								}
 							}
                         }
-						//if (f.HasVariable(x))
-						//{
-						//	f.GetVariable(x).stackAddr = reg;
-
-						//}
-						//else
-						//{
-						//	if (cstuff.ContainsKey(reg))
-						//	{
-						//		Console.WriteLine("SOULDNT BE DONE! : " + reg);
-						//		cstuff[reg] = x;
-						//	}
-						//	else
-						//	{
-						//		cstuff.Add(reg, x);
-						//	}
-
-						//}
 						break;
 					case "call":
 						if (instr.args.Length < 1)
@@ -1060,6 +991,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 						break;
 
 					case "jmp":
+
 						break;
 					default:
 						break;
