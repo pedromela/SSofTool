@@ -86,6 +86,7 @@ namespace SSofTool
 			
 			object[] pars = { "av", "ac" };
 			manager.f = manager.GetFunction("main");
+			manager.PushRetAddr("_MAINRET");
 			Dictionary<int, char> stack = manager.Stack();
 			ripLabel.Text = manager.GetRegister("rip");
 			int pointer = 0;
@@ -107,6 +108,7 @@ namespace SSofTool
 		private void LoadStackCMD()
 		{
 			manager.f = manager.GetFunction("main");
+			manager.PushRetAddr("_MAINRET");
 			Dictionary<int, char> stack = manager.Stack();
 			manager.WriteJson(fileout);
 		}

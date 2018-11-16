@@ -427,6 +427,32 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 			}
 
 		}
+
+		public void PushRetAddr(string value)
+		{
+			string ToWrite = value;
+			int len = ToWrite.Length;
+			int i = pointer + len - 1;
+			foreach (char c in ToWrite)
+			{
+				if (stack.ContainsKey(i))
+				{
+					Console.WriteLine("bad pointer : " + pointer + " , c : " + c);
+				}
+				else
+				{
+					//Console.WriteLine("pointer : " + pointer + " , c : " + c);
+					stack[i] = c;
+					//stack.Add(i, c);
+					pointer++;
+					i--;
+
+				}
+			}
+
+			registers["rsp"] = SubReg2("rsp", len); // actualizar rsp (stack pointer)	
+		}
+
 		public void PushToStack(string reg)
 		{
 			string ToWrite = HexToASCII(AutoComplete(registers[reg], 16));
@@ -534,7 +560,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
         public Dictionary<int, char> Stack()
 		{
 			Frame frame;
-
+			
 			foreach (Instruction instr in f.GetInstructions())
 			{
 				SetRip(instr);
