@@ -30,7 +30,7 @@ namespace SSofTool
 			manager = new Manager();
 			filename = input;
 			//string[] toks = filename.Split('.');
-			fileout = filename.Substring(0, filename.Length - 4) + "output.json";
+			fileout = filename.Substring(0, filename.Length - 4) + "output";
 			LoadJson(filename);
 			//LoadCode();
 			LoadStackCMD();

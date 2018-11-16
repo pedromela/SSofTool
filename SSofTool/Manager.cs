@@ -257,14 +257,24 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 			return 0;
 		}
 
+		public string IntToHexString(int value)
+		{
+			return value.ToString("X16");
+
+		}
+
 		public int ParseAddr(string addr)
 		{
 			int len = addr.Length;
 			if (len == 8)
 			{
-			}
-			return Convert.ToInt32(addr, 16);
+				return (int) Convert.ToUInt32(addr, 16);
 
+			}
+			else if (len == 16)
+			{
+				return (int) Convert.ToUInt64(addr, 16);
+			}
 			//else if(len == 16) {
 			//	return Convert.ToInt64(addr, 16);
 			//}
@@ -538,8 +548,22 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                         }
                         else
                         {
-                           
-                            string overflown_address = "rbp-" + DecToHex((start - i - f.start + 1));
+							string overflown_address = "";
+							int value = (start - i - f.start + 1);
+							if(value < 0)
+							{
+								overflown_address = "rbp+" + DecToHex(-value);
+							}
+							else if(value == 0)
+							{
+								overflown_address = "rbp"; // nao sei se é suposto fazer isto
+							}
+							else
+							{
+								overflown_address = "rbp-" + DecToHex(value);
+
+							}
+							Console.WriteLine("VAlLUE : " + value);
                             if (this.invalidacc.overflown_address == null)
                             {
                                 this.invalidacc.overflown_address = overflown_address;
