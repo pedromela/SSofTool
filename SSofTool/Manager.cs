@@ -512,9 +512,13 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                         }
                         else
                         {
+                           
                             string overflown_address = "rbp-" + DecToHex((start - i - f.start + 1));
-                            this.invalidacc.overflown_address = overflown_address;
-                            vulnurabilities += (invalidacc.ToString() + "\n");
+                            if (this.invalidacc.overflown_address == null)
+                            {
+                                this.invalidacc.overflown_address = overflown_address;
+                                vulnurabilities += (invalidacc.ToString() + "\n");
+                            }
                             Console.WriteLine(invalidacc.ToString());
                         }
                     }
@@ -982,8 +986,32 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 										int start = (int)ParseToPointer(buffstart) - 1;
 										Console.WriteLine("start : " + start +" , bytes : " + v.bytes);
 										Console.WriteLine("strcpy input : " + input + ", address : "+ rdx);
-										//int var_size = f.GetVariable().bytes;
-										int i = InsertToStack(input, start, input.Length, v);
+                                        //int var_size = f.GetVariable().bytes;
+                                        invalidacc.overflow_var = v.name;
+                                        invalidacc.fnname = "strcpy";
+                                        varoverflow.fnname = "strcpy";
+                                        rbpoverflow.vulnurability = "RBPOVERFLOW";
+                                        rbpoverflow.overflow_var = v.name;
+
+                                        //varoverflow
+                                        foreach (KeyValuePair<string, Function> kp in functions_dict)
+                                        {
+                                            if (kp.Value == f)
+                                            {
+                                                invalidacc.vuln_function = kp.Key.ToString();
+                                                varoverflow.vuln_function = kp.Key.ToString();
+                                                rbpoverflow.vuln_function = kp.Key.ToString();
+                                            }
+                                        }
+
+                                        invalidacc.address = instr.address.ToString();
+                                        invalidacc.vulnurability = "INVALIDACCS";
+                                        varoverflow.vulnurability = "VAROVERFLOW";
+                                        varoverflow.overflow_var = v.name;
+                                        varoverflow.address = instr.address.ToString();
+                                        rbpoverflow.address = instr.address.ToString();
+                                        rbpoverflow.fnname = "strcpy";
+                                        int i = InsertToStack(input, start, input.Length, v);
 									}
 									else
 									{
