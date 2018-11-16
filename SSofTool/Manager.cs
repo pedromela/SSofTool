@@ -51,6 +51,7 @@ namespace SSofTool
             this.invalidacc = new Newtonsoft.Json.Linq.JObject();
             this.varoverflow = new Newtonsoft.Json.Linq.JObject();
             this.rbpoverflow = new Newtonsoft.Json.Linq.JObject();
+            this.returnadroverflow = new Newtonsoft.Json.Linq.JObject();
         }
 
 		public void InitializeRegisters()
@@ -539,21 +540,28 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 
 
                     
-                    if (range % 8 == 0)
+                    
                     {
                         int lastaddress = start - i - f.start + 1;
                         if (lastaddress <= 0 && (!vulnurabilities.Contains(rbpoverflow.ToString() + "\n")))
-                        {
+                        {                           
                             vulnurabilities += (rbpoverflow.ToString() + "\n");
+                            
                         }
                         else
                         {
+                            
 							string overflown_address = "";
 							int value = (start - i - f.start + 1);
 							if(value < 0)
 							{
-								overflown_address = "rbp+" + DecToHex(-value);
-							}
+                                if (lastaddress <= -8 && (!vulnurabilities.Contains(returnadroverflow.ToString() + "\n")))
+                                {
+                                    vulnurabilities += (returnadroverflow.ToString() + "\n");
+                                    //overflown_address = "rbp+" + DecToHex(-value);
+                                }
+                                overflown_address = "rbp+" + DecToHex(-value);
+                            }
 							else if(value == 0)
 							{
 								overflown_address = "rbp"; // nao sei se é suposto fazer isto
@@ -564,7 +572,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 
 							}
 							Console.WriteLine("VAlLUE : " + value);
-                            if (this.invalidacc.overflown_address == null)
+                            if (this.invalidacc.overflown_address == null && value > 0)
                             {
                                 this.invalidacc.overflown_address = overflown_address;
                                 vulnurabilities += (invalidacc.ToString() + "\n");
@@ -572,7 +580,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                             Console.WriteLine(invalidacc.ToString());
                         }
                     }
-                    range++;
+                    
 
 
                 }
@@ -904,6 +912,8 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                                 varoverflow.fnname = "fgets";
                                                 rbpoverflow.vulnurability = "RBPOVERFLOW";
                                                 rbpoverflow.overflow_var = v.name;
+                                                returnadroverflow.vulnurability = "RETOVERFLOW";
+                                                returnadroverflow.overflow_var = v.name;
                                                 
                                                 //varoverflow
                                                 foreach (KeyValuePair<string, Function> kp in functions_dict)
@@ -913,6 +923,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                                         invalidacc.vuln_function = kp.Key.ToString();
                                                         varoverflow.vuln_function = kp.Key.ToString();
                                                         rbpoverflow.vuln_function = kp.Key.ToString();
+                                                        returnadroverflow.vuln_function = kp.Key.ToString();
                                                     }
                                                 }
                                                 
@@ -923,6 +934,8 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                                 varoverflow.address = instr.address.ToString();
                                                 rbpoverflow.address = instr.address.ToString();
                                                 rbpoverflow.fnname = "fgets";
+                                                returnadroverflow.address = instr.address.ToString();
+                                                returnadroverflow.fnname = "strcpy";
                                                 
                                                 //invalidacc.overflown_var = v.name;
                                                 int i = InsertToStack(input, start, bufflen, v);
@@ -1042,6 +1055,8 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                         varoverflow.fnname = "strcpy";
                                         rbpoverflow.vulnurability = "RBPOVERFLOW";
                                         rbpoverflow.overflow_var = v.name;
+                                        returnadroverflow.vulnurability = "RETOVERFLOW";
+                                        returnadroverflow.overflow_var = v.name;
 
                                         //varoverflow
                                         foreach (KeyValuePair<string, Function> kp in functions_dict)
@@ -1051,6 +1066,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                                 invalidacc.vuln_function = kp.Key.ToString();
                                                 varoverflow.vuln_function = kp.Key.ToString();
                                                 rbpoverflow.vuln_function = kp.Key.ToString();
+                                                returnadroverflow.vuln_function = kp.Key.ToString();
                                             }
                                         }
 
@@ -1061,6 +1077,8 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                         varoverflow.address = instr.address.ToString();
                                         rbpoverflow.address = instr.address.ToString();
                                         rbpoverflow.fnname = "strcpy";
+                                        returnadroverflow.address = instr.address.ToString();
+                                        returnadroverflow.fnname = "strcpy";
                                         int i = InsertToStack(input, start, input.Length, v);
 									}
 									else
