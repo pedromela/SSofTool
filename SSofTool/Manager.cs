@@ -532,7 +532,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                     if (range % 8 == 0)
                     {
                         int lastaddress = start - i - f.start + 1;
-                        if (lastaddress <= 0)
+                        if (lastaddress <= 0 && (!vulnurabilities.Contains(rbpoverflow.ToString() + "\n")))
                         {
                             vulnurabilities += (rbpoverflow.ToString() + "\n");
                         }
