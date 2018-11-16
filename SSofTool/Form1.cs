@@ -43,7 +43,7 @@ namespace SSofTool
 		public void LoadJson(string file)
 		{
 			
-			using (StreamReader r = new StreamReader("public_tests/" + file))
+			using (StreamReader r = new StreamReader(file))
 			{
 				string json = r.ReadToEnd();
 				if(string.IsNullOrEmpty(json))

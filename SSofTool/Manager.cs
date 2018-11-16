@@ -419,8 +419,8 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 				else
 				{
 					//Console.WriteLine("pointer : " + pointer + " , c : " + c);
-
-					stack.Add(i, c);
+					stack[i] = c;
+					//stack.Add(i, c);
 					pointer++;
 					i--;
 
@@ -506,19 +506,16 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 						if(instr.args.Length == 2)
 						{
 							string reg = instr.args[0].ToString();
-							//if (reg.Equals("rsp"))
-							//{
 							int intValue = Convert.ToInt32(instr.args[1].ToString(), 16);
 							frame = new Frame(pointer, pointer + intValue - 1);
 							frames.Push(frame);
 							for (int i = 0; i < intValue; i++)
 							{
-								//s.Push('0');
-								stack.Add(pointer, '0');
+								stack[pointer] = '0';
+								//stack.Add(pointer, '0');
 								pointer++;
 							}
 							registers[reg] = SubReg2(reg, intValue);
-							Console.WriteLine("SUB: {0} ", registers[reg]);
 						}
 						break;
 					case "push":
@@ -985,6 +982,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 						registers["rsp"] = registers["rbp"];
 						Console.WriteLine("RBP : " + GetString(registers["rbp"], QWORD));
 						registers["rbp"] = ASCIIToHex(PopFromStack(registers["rbp"]));
+
 						break;
 					case "ret":
 
