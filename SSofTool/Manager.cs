@@ -60,6 +60,8 @@ namespace SSofTool
 			registers.Add("esi", "00000000");
 			registers.Add("eax", "00000000");
 			registers.Add("rax", "0000000000000000");
+			registers.Add("rbx", "FFFFFFFFFFFFFFFF");
+			registers.Add("rcx", "FFFFFFFFFFFFFFFF");
 			registers.Add("rdx", "0000000000000000");
 			registers.Add("rip", "0000000000000000");
 			registers.Add("rbp", "FFFFFFFFFFFFFFFF");
@@ -854,6 +856,53 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 								}
 
 								break;
+							case "<strncpy@plt>":
+								//Console.WriteLine("{0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
+
+								if (cstuff.ContainsKey(buffstart) && cstuff.ContainsKey(rdx))
+								{
+									//Console.WriteLine("buffstart : " + buffstart);
+									//Console.WriteLine("cstuff[buffstart] : " + cstuff[buffstart]);
+									//Console.WriteLine("input : " + input);
+									int bufflen = (int) Convert.ToInt64(registers["rcx"], 16);
+									Variable v = f.GetVariable(cstuff[buffstart]);
+									if (v != null)
+									{
+										int varmaxlen = v.bytes;
+										input = GetString(rdx);
+										frame = frames.First();
+										int start = (int)ParseToPointer(buffstart) - 1;
+										Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
+										Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
+										//int var_size = f.GetVariable().bytes;
+
+										int i = InsertToStack(input, start, bufflen, v);
+									}
+									else
+									{
+										v = last_function.GetVariable(cstuff[buffstart]);
+										if (v != null)
+										{
+											int varmaxlen = v.bytes;
+											input = GetString(rdx);
+											frame = frames.First();
+											int start = (int)ParseToPointer(buffstart) - 1;
+											Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
+											Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
+											//int var_size = f.GetVariable().bytes;
+											int i = InsertToStack(input, start, bufflen, v);
+										}
+										else
+										{
+											Console.WriteLine("CANT FIND VARIABLE: var {0}", buffstart);
+										}
+									}
+								}
+								else
+								{
+									Console.WriteLine("CANT FIND VARIABLE: var {0}", rdx);
+								}
+								break;
 							case "<strcpy@plt>":
 								//Console.WriteLine("{0} {1} {2}", instr.pos, instr.args[0], instr.args[1]);
 								
@@ -982,7 +1031,6 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 						registers["rsp"] = registers["rbp"];
 						Console.WriteLine("RBP : " + GetString(registers["rbp"], QWORD));
 						registers["rbp"] = ASCIIToHex(PopFromStack(registers["rbp"]));
-
 						break;
 					case "ret":
 

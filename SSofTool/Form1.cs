@@ -130,7 +130,7 @@ namespace SSofTool
 			
 			if (string.IsNullOrEmpty(file))
 			{
-				LoadJson("test04.json");
+				LoadJson("public_tests/test15.json");
 			}
 			else
 			{
