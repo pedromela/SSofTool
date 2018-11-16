@@ -52,6 +52,7 @@ namespace SSofTool
             this.varoverflow = new Newtonsoft.Json.Linq.JObject();
             this.rbpoverflow = new Newtonsoft.Json.Linq.JObject();
             this.returnadroverflow = new Newtonsoft.Json.Linq.JObject();
+            this.scorruption = new Newtonsoft.Json.Linq.JObject();
         }
 
 		public void InitializeRegisters()
@@ -556,11 +557,16 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 							if(value < 0)
 							{
                                 if (lastaddress <= -8 && (!vulnurabilities.Contains(returnadroverflow.ToString() + "\n")))
-                                {
+                                {                                  
                                     vulnurabilities += (returnadroverflow.ToString() + "\n");
                                     //overflown_address = "rbp+" + DecToHex(-value);
                                 }
                                 overflown_address = "rbp+" + DecToHex(-value);
+                                if (lastaddress <= -16 && scorruption.overflown_address == null)
+                                {
+                                    scorruption.overflown_address = overflown_address;
+                                    vulnurabilities += scorruption.ToString();
+                                }
                             }
 							else if(value == 0)
 							{
@@ -914,6 +920,9 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                                 rbpoverflow.overflow_var = v.name;
                                                 returnadroverflow.vulnurability = "RETOVERFLOW";
                                                 returnadroverflow.overflow_var = v.name;
+                                                scorruption.overflow_var = v.name;
+                                                scorruption.fnname = "fgets";
+                                                
                                                 
                                                 //varoverflow
                                                 foreach (KeyValuePair<string, Function> kp in functions_dict)
@@ -924,6 +933,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                                         varoverflow.vuln_function = kp.Key.ToString();
                                                         rbpoverflow.vuln_function = kp.Key.ToString();
                                                         returnadroverflow.vuln_function = kp.Key.ToString();
+                                                        scorruption.vuln_function = kp.Key.ToString();
                                                     }
                                                 }
                                                 
@@ -935,7 +945,9 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                                 rbpoverflow.address = instr.address.ToString();
                                                 rbpoverflow.fnname = "fgets";
                                                 returnadroverflow.address = instr.address.ToString();
-                                                returnadroverflow.fnname = "strcpy";
+                                                returnadroverflow.fnname = "fgets";
+                                                scorruption.address = instr.address.ToString();
+                                                scorruption.vulnurability = "SCORRUPTION";
                                                 
                                                 //invalidacc.overflown_var = v.name;
                                                 int i = InsertToStack(input, start, bufflen, v);
@@ -1057,6 +1069,8 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                         rbpoverflow.overflow_var = v.name;
                                         returnadroverflow.vulnurability = "RETOVERFLOW";
                                         returnadroverflow.overflow_var = v.name;
+                                        scorruption.overflow_var = v.name;
+                                        scorruption.fnname = "strcpy";
 
                                         //varoverflow
                                         foreach (KeyValuePair<string, Function> kp in functions_dict)
@@ -1067,6 +1081,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                                 varoverflow.vuln_function = kp.Key.ToString();
                                                 rbpoverflow.vuln_function = kp.Key.ToString();
                                                 returnadroverflow.vuln_function = kp.Key.ToString();
+                                                scorruption.vuln_function = kp.Key.ToString();
                                             }
                                         }
 
@@ -1079,6 +1094,8 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                         rbpoverflow.fnname = "strcpy";
                                         returnadroverflow.address = instr.address.ToString();
                                         returnadroverflow.fnname = "strcpy";
+                                        scorruption.address = instr.address.ToString();
+                                        scorruption.vulnurability = "SCORRUPTION";
                                         int i = InsertToStack(input, start, input.Length, v);
 									}
 									else
