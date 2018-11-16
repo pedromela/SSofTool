@@ -520,8 +520,9 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 				Console.Write("start before : " + start);
 
 				//Console.WriteLine("GetStringTerminationIndex(start/*, v.bytes*/)" + GetStringTerminationIndex(start, v.bytes));
-				start -= GetStringTerminationIndex(start, v.bytes);
+				int term = GetStringTerminationIndex(start, v.bytes);
 				end = start - v.bytes;
+				start = term;
 				Console.WriteLine("start after : " + start);
 			}
 			CheckAllVars(start, end , v);
@@ -1294,7 +1295,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 											frame = frames.First();
 											int start = (int)ParseToPointer(buffstart) - 1;
 											Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
-											Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
+											Console.WriteLine("strncat input : " + input + ", address : " + rdx);
 											//int var_size = f.GetVariable().bytes;
 											int i = InsertToStack(input, start, bufflen, v, true);
 										}
@@ -1327,7 +1328,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 										
 										int start = (int)ParseToPointer(buffstart) - 1;
 										Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
-										Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
+										Console.WriteLine("strcat input : " + input + ", address : " + rdx);
                                         //int var_size = f.GetVariable().bytes;
                                         invalidacc.overflow_var = v.name;
                                         invalidacc.fnname = "strcat";
@@ -1375,7 +1376,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 											frame = frames.First();
 											int start = (int)ParseToPointer(buffstart) - 1;
 											Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
-											Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
+											Console.WriteLine("strcat input : " + input + ", address : " + rdx);
 											//int var_size = f.GetVariable().bytes;
 											int i = InsertToStack(input, start, input.Length, v, true);
 										}
