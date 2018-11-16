@@ -972,21 +972,44 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 													input = InputString(bufflen);
 													frame = frames.First();
 													int start = (int)ParseToPointer(buffstart) - 1;
-													Console.WriteLine("user input {0}", input);                                                    
-                                                    //invalidacc.fnname = "fgets";
+													Console.WriteLine("user input {0}", input);
+
+                                                    invalidacc.overflow_var = v.name;
+                                                    invalidacc.fnname = "strcpy";
+                                                    varoverflow.fnname = "strcpy";
+                                                    rbpoverflow.vulnurability = "RBPOVERFLOW";
+                                                    rbpoverflow.overflow_var = v.name;
+                                                    returnadroverflow.vulnurability = "RETOVERFLOW";
+                                                    returnadroverflow.overflow_var = v.name;
+                                                    scorruption.overflow_var = v.name;
+                                                    scorruption.fnname = "strcpy";
+
+                                                    //varoverflow
                                                     foreach (KeyValuePair<string, Function> kp in functions_dict)
                                                     {
                                                         if (kp.Value == f)
                                                         {
                                                             invalidacc.vuln_function = kp.Key.ToString();
+                                                            varoverflow.vuln_function = kp.Key.ToString();
+                                                            rbpoverflow.vuln_function = kp.Key.ToString();
+                                                            returnadroverflow.vuln_function = kp.Key.ToString();
+                                                            scorruption.vuln_function = kp.Key.ToString();
                                                         }
                                                     }
-                                                    
+
                                                     invalidacc.address = instr.address.ToString();
                                                     invalidacc.vulnurability = "INVALIDACCS";
-                                                    invalidacc.overflown_var = v.name;
-                                                    
-													int i = InsertToStack(input, start, bufflen, v); 
+                                                    varoverflow.vulnurability = "VAROVERFLOW";
+                                                    varoverflow.overflow_var = v.name;
+                                                    varoverflow.address = instr.address.ToString();
+                                                    rbpoverflow.address = instr.address.ToString();
+                                                    rbpoverflow.fnname = "strcpy";
+                                                    returnadroverflow.address = instr.address.ToString();
+                                                    returnadroverflow.fnname = "strcpy";
+                                                    scorruption.address = instr.address.ToString();
+                                                    scorruption.vulnurability = "SCORRUPTION";
+
+                                                    int i = InsertToStack(input, start, bufflen, v); 
 													stack[i < v.bytes ? start - i : start - v.bytes] = '#';
 												}
 												else
@@ -1073,8 +1096,45 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 											int start = (int)ParseToPointer(buffstart) - 1;
 											Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
 											Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
-											//int var_size = f.GetVariable().bytes;
-											int i = InsertToStack(input, start, bufflen, v);
+                                            //int var_size = f.GetVariable().bytes;
+
+                                            invalidacc.overflow_var = v.name;
+                                            invalidacc.fnname = "strncpy";
+                                            varoverflow.fnname = "strncpy";
+                                            rbpoverflow.vulnurability = "RBPOVERFLOW";
+                                            rbpoverflow.overflow_var = v.name;
+                                            returnadroverflow.vulnurability = "RETOVERFLOW";
+                                            returnadroverflow.overflow_var = v.name;
+                                            scorruption.overflow_var = v.name;
+                                            scorruption.fnname = "strncpy";
+
+
+                                            //varoverflow
+                                            foreach (KeyValuePair<string, Function> kp in functions_dict)
+                                            {
+                                                if (kp.Value == f)
+                                                {
+                                                    invalidacc.vuln_function = kp.Key.ToString();
+                                                    varoverflow.vuln_function = kp.Key.ToString();
+                                                    rbpoverflow.vuln_function = kp.Key.ToString();
+                                                    returnadroverflow.vuln_function = kp.Key.ToString();
+                                                    scorruption.vuln_function = kp.Key.ToString();
+                                                }
+                                            }
+
+                                            invalidacc.address = instr.address.ToString();
+                                            invalidacc.vulnurability = "INVALIDACCS";
+                                            varoverflow.vulnurability = "VAROVERFLOW";
+                                            varoverflow.overflow_var = v.name;
+                                            varoverflow.address = instr.address.ToString();
+                                            rbpoverflow.address = instr.address.ToString();
+                                            rbpoverflow.fnname = "strncpy";
+                                            returnadroverflow.address = instr.address.ToString();
+                                            returnadroverflow.fnname = "strncpy";
+                                            scorruption.address = instr.address.ToString();
+                                            scorruption.vulnurability = "SCORRUPTION";
+
+                                            int i = InsertToStack(input, start, bufflen, v);
 										}
 										else
 										{
@@ -1153,8 +1213,44 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 											int start = (int)ParseToPointer(buffstart) - 1;
 											Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
 											Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
-											//int var_size = f.GetVariable().bytes;
-											int i = InsertToStack(input, start, input.Length, v);
+                                            //int var_size = f.GetVariable().bytes;
+
+                                            invalidacc.overflow_var = v.name;
+                                            invalidacc.fnname = "strcpy";
+                                            varoverflow.fnname = "strcpy";
+                                            rbpoverflow.vulnurability = "RBPOVERFLOW";
+                                            rbpoverflow.overflow_var = v.name;
+                                            returnadroverflow.vulnurability = "RETOVERFLOW";
+                                            returnadroverflow.overflow_var = v.name;
+                                            scorruption.overflow_var = v.name;
+                                            scorruption.fnname = "strcpy";
+
+                                            //varoverflow
+                                            foreach (KeyValuePair<string, Function> kp in functions_dict)
+                                            {
+                                                if (kp.Value == f)
+                                                {
+                                                    invalidacc.vuln_function = kp.Key.ToString();
+                                                    varoverflow.vuln_function = kp.Key.ToString();
+                                                    rbpoverflow.vuln_function = kp.Key.ToString();
+                                                    returnadroverflow.vuln_function = kp.Key.ToString();
+                                                    scorruption.vuln_function = kp.Key.ToString();
+                                                }
+                                            }
+
+                                            invalidacc.address = instr.address.ToString();
+                                            invalidacc.vulnurability = "INVALIDACCS";
+                                            varoverflow.vulnurability = "VAROVERFLOW";
+                                            varoverflow.overflow_var = v.name;
+                                            varoverflow.address = instr.address.ToString();
+                                            rbpoverflow.address = instr.address.ToString();
+                                            rbpoverflow.fnname = "strcpy";
+                                            returnadroverflow.address = instr.address.ToString();
+                                            returnadroverflow.fnname = "strcpy";
+                                            scorruption.address = instr.address.ToString();
+                                            scorruption.vulnurability = "SCORRUPTION";
+
+                                            int i = InsertToStack(input, start, input.Length, v);
 										}
 										else
 										{
@@ -1296,8 +1392,44 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 											int start = (int)ParseToPointer(buffstart) - 1;
 											Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
 											Console.WriteLine("strncat input : " + input + ", address : " + rdx);
-											//int var_size = f.GetVariable().bytes;
-											int i = InsertToStack(input, start, bufflen, v, true);
+                                            //int var_size = f.GetVariable().bytes;
+
+                                            invalidacc.overflow_var = v.name;
+                                            invalidacc.fnname = "strncat";
+                                            varoverflow.fnname = "strncat";
+                                            rbpoverflow.vulnurability = "RBPOVERFLOW";
+                                            rbpoverflow.overflow_var = v.name;
+                                            returnadroverflow.vulnurability = "RETOVERFLOW";
+                                            returnadroverflow.overflow_var = v.name;
+                                            scorruption.overflow_var = v.name;
+                                            scorruption.fnname = "strncat";
+
+                                            //varoverflow
+                                            foreach (KeyValuePair<string, Function> kp in functions_dict)
+                                            {
+                                                if (kp.Value == f)
+                                                {
+                                                    invalidacc.vuln_function = kp.Key.ToString();
+                                                    varoverflow.vuln_function = kp.Key.ToString();
+                                                    rbpoverflow.vuln_function = kp.Key.ToString();
+                                                    returnadroverflow.vuln_function = kp.Key.ToString();
+                                                    scorruption.vuln_function = kp.Key.ToString();
+                                                }
+                                            }
+
+                                            invalidacc.address = instr.address.ToString();
+                                            invalidacc.vulnurability = "INVALIDACCS";
+                                            varoverflow.vulnurability = "VAROVERFLOW";
+                                            varoverflow.overflow_var = v.name;
+                                            varoverflow.address = instr.address.ToString();
+                                            rbpoverflow.address = instr.address.ToString();
+                                            rbpoverflow.fnname = "strncat";
+                                            returnadroverflow.address = instr.address.ToString();
+                                            returnadroverflow.fnname = "strncat";
+                                            scorruption.address = instr.address.ToString();
+                                            scorruption.vulnurability = "SCORRUPTION";
+
+                                            int i = InsertToStack(input, start, bufflen, v, true);
 										}
 										else
 										{
@@ -1377,8 +1509,44 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 											int start = (int)ParseToPointer(buffstart) - 1;
 											Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
 											Console.WriteLine("strcat input : " + input + ", address : " + rdx);
-											//int var_size = f.GetVariable().bytes;
-											int i = InsertToStack(input, start, input.Length, v, true);
+                                            //int var_size = f.GetVariable().bytes;
+
+                                            invalidacc.overflow_var = v.name;
+                                            invalidacc.fnname = "strcat";
+                                            varoverflow.fnname = "strcat";
+                                            rbpoverflow.vulnurability = "RBPOVERFLOW";
+                                            rbpoverflow.overflow_var = v.name;
+                                            returnadroverflow.vulnurability = "RETOVERFLOW";
+                                            returnadroverflow.overflow_var = v.name;
+                                            scorruption.overflow_var = v.name;
+                                            scorruption.fnname = "strcat";
+
+                                            //varoverflow
+                                            foreach (KeyValuePair<string, Function> kp in functions_dict)
+                                            {
+                                                if (kp.Value == f)
+                                                {
+                                                    invalidacc.vuln_function = kp.Key.ToString();
+                                                    varoverflow.vuln_function = kp.Key.ToString();
+                                                    rbpoverflow.vuln_function = kp.Key.ToString();
+                                                    returnadroverflow.vuln_function = kp.Key.ToString();
+                                                    scorruption.vuln_function = kp.Key.ToString();
+                                                }
+                                            }
+
+                                            invalidacc.address = instr.address.ToString();
+                                            invalidacc.vulnurability = "INVALIDACCS";
+                                            varoverflow.vulnurability = "VAROVERFLOW";
+                                            varoverflow.overflow_var = v.name;
+                                            varoverflow.address = instr.address.ToString();
+                                            rbpoverflow.address = instr.address.ToString();
+                                            rbpoverflow.fnname = "strcat";
+                                            returnadroverflow.address = instr.address.ToString();
+                                            returnadroverflow.fnname = "strcat";
+                                            scorruption.address = instr.address.ToString();
+                                            scorruption.vulnurability = "SCORRUPTION";
+
+                                            int i = InsertToStack(input, start, input.Length, v, true);
 										}
 										else
 										{
