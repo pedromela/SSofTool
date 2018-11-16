@@ -378,10 +378,10 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 			return new String('0', addr_val.Length);
 		}
 
-		public void CheckAllVars(int start, int len, Variable v)
+		public void CheckAllVars(int start, int end, Variable v)
 		{
 			Variable v2;
-			int end = start - len;
+			//int end = start - len;
 			int varstart, varend;
 			foreach (var item in cstuff)
 			{
@@ -396,7 +396,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 					{
 						varstart = (int)ParseToPointer(item.Key);
 						varend = varstart - v2.bytes;
-						Console.WriteLine("varstart : {0} , varend : {1} ", varstart, varend);
+						Console.WriteLine("{2}  varstart : {0} , varend : {1} ", varstart, varend, v2.name);
 						Console.WriteLine("start : {0} , end : {1} ", start, end);
 
 						if (!((start > varstart && end > varstart && start > varend && end > varend) || (start < varstart && end < varstart && start < varend && end < varend)))
@@ -494,7 +494,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 		{
 			while(index > 0 && maxlen > 0)
 			{
-				Console.WriteLine("Index : " + index);
+				//Console.WriteLine("Index : " + index);
 				if(stack[index] == '#')
 				{
 					return index;
@@ -510,15 +510,21 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 		{
             int range = 0;
             int i = 0;
-            Frame f = frames.First();
+			int len = input.Length;
+			int end = start - len;
+
+			Frame f = frames.First();
 
 			if (append)
 			{
-				Console.WriteLine("GetStringTerminationIndex(start/*, v.bytes*/)" + GetStringTerminationIndex(start, v.bytes));
-				start += GetStringTerminationIndex(start, v.bytes);
+				Console.Write("start before : " + start);
+
+				//Console.WriteLine("GetStringTerminationIndex(start/*, v.bytes*/)" + GetStringTerminationIndex(start, v.bytes));
+				start -= GetStringTerminationIndex(start, v.bytes);
+				end = start - v.bytes;
+				Console.WriteLine("start after : " + start);
 			}
-			int len = input.Length;
-			CheckAllVars(start, len , v);
+			CheckAllVars(start, end , v);
 
 			for (i = 0; i < bufflen; i++)
 			{
@@ -607,7 +613,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 			{
 				SetRip(instr);
 				Console.WriteLine("{0}", instr.op);
-				Console.WriteLine("rip : " + registers["rip"]);
+				Console.WriteLine("edx : " + registers["edx"]);
 				//Console.WriteLine("rdi : " + registers["rdi"]);
 				//Console.WriteLine("rbp : " + registers["rbp"]);
 				//Console.WriteLine("rsp : " + registers["rsp"]);
@@ -849,7 +855,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 									if (cstuff.ContainsKey(reg))
 									{
 										Console.WriteLine("cstuff ALREADY CONTAINS KEY " + reg + ", TRYING TO ADD " + x);
-										//cstuff[reg] = x;
+										cstuff[reg] = x;
 									}
 									else
 									{
@@ -1015,7 +1021,7 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
                                         frame = frames.First();
 										int start = (int)ParseToPointer(buffstart) - 1;
 										Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
-										Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
+										Console.WriteLine("strcpy input : " + input + ", address : " + registers["rsi"]);
                                         //int var_size = f.GetVariable().bytes;
                                         invalidacc.overflow_var = v.name;
                                         invalidacc.fnname = "strncpy";
@@ -1233,11 +1239,13 @@ Ut semper labitur eos, pri sonet eligendi expetenda id, no sonet vivendo accusam
 									if (v != null)
 									{
 										int varmaxlen = v.bytes;
-										input = GetString(rdx);
+										int stringsize = Convert.ToInt32(registers["edx"], 16);
+										input = InputString(stringsize);
+										//input = GetString(rdx);
 										frame = frames.First();
 										int start = (int)ParseToPointer(buffstart) - 1;
 										Console.WriteLine("start : " + start + " , bytes : " + v.bytes);
-										Console.WriteLine("strcpy input : " + input + ", address : " + rdx);
+										Console.WriteLine("strncat input : " + input + ", address : " + rdx);
                                         //int var_size = f.GetVariable().bytes;
 
                                         invalidacc.overflow_var = v.name;
